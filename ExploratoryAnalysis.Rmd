@@ -1,0 +1,69 @@
+---
+title: "Exploratory analysis"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    collapsed: false
+    number_sections: false
+    toc_depth: 1
+    #code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
+```
+<br/><br/>
+
+# Overall conceptualisation
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+
+#### [View conceptual framwork](https://fmendez72.github.io/FM_webtest/Liddpages/ConceptualMap.html)
+<br/><br/>
+
+# Descriptives I (Cross-country)
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+#### <a href="https://fmendez72.github.io/FM_webtest/Liddpages/lawInitiatedDefinitions.html" target="_blank">See general descriptives</a>
+<br/><br/>
+
+# Descriptives II (Frames)
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+#### <a href="https://fmendez72.github.io/FM_webtest/Liddpages/lawInitiatedDefinitions.html" target="_blank">See frames by country</a>
+<br/><br/>
+
+# Descriptives: Dependent variable (Tone)
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+#### <a href="https://fmendez72.github.io/FM_webtest/Liddpages/lawInitiatedDefinitions.html" target="_blank">Tone by country</a>
+<br/><br/>
+
+# Descriptives: Dependent variable (Europeanization)
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+#### <a href="https://fmendez72.github.io/FM_webtest/Liddpages/lawInitiatedDefinitions.html" target="_blank">Europeanization by country</a>
+<br/><br/>
+
+# Methodology 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.
+<br/><br/>
+
+
+# Model 1 
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+#### <a href="https://fmendez72.github.io/FM_webtest/Liddpages/lawInitiatedDefinitions.html" target="_blank">See model 1</a>
+<br/><br/>
+
+# Model 2
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+#### <a href="https://fmendez72.github.io/regio/analysis/exploratory0.html" target="_blank">See model 2</a>
+<br/><br/>
+
+# Model N
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+
+#### <a href="https://fmendez72.github.io/FM_webtest/Liddpages/lawInitiatedDefinitions.html" target="_blank">See model N</a>
+<br/><br/>

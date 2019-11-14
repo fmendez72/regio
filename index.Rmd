@@ -23,9 +23,11 @@ This website contains additional resources related for the ongoing project that 
 
 ## How to use
 
-1. See the [Analysis](https://fmendez72.github.io/FM_webtest/SupportDocuments.html) tab for preliminary analysis. 
+1. See the [Analysis](https://fmendez72.github.io/FM_webtest/ExploratoryAnalysis.html) tab for preliminary exploratory analysis. 
 
-2. The [Links page](https://fmendez72.github.io/regio/Links.html) contains helpful links related to data analysis.
+2. The [Links page](https://fmendez72.github.io/regio/Links.html) contains helpful links related to data analysis.  
+
+3. Throught the project we wil be adding features and tabs to this website as the project develops.
 
 
 </div>
@@ -34,6 +36,6 @@ This website contains additional resources related for the ongoing project that 
 ### [Framing Cohesion policy: An extended cross-country analysis](https://fmendez72.github.io/regio/)
 
 <a href = "https://fmendez72.github.io/regio/">
-![](images/cp_data.png)
+![](images/reg1.png)
 </a>
 </div>
