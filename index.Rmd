@@ -1,5 +1,5 @@
 ---
-title: "LIDD coding"
+title: "Regio project website"
 output: html_document
 ---
 
@@ -17,27 +17,23 @@ output: html_document
 <div class="row" style="padding-top: 30px;">
 <div class="col-sm-6">
 
-# **LIDD coding**
+# **Regio project website**
 
-This website provides additional information related to the LIDD coding platform. You can get direct access to supporting documentation such as:
-the list of questionnaires per instrument, core working definitions and additional documentation here. 
+This website contains additional resources related for the ongoing project that investigates the tone and Europeanization of Cohesion policy in the media using framing analysis.
 
 ## How to use
 
-1. See the [Support Documents](https://fmendez72.github.io/FM_webtest/SupportDocuments.html) tab for further information regarding. 
+1. See the [Analysis](https://fmendez72.github.io/FM_webtest/SupportDocuments.html) tab for preliminary analysis. 
 
-2. See the [Links page](https://fmendez72.github.io/FM_webtest/Links.html) for lots of helpful links.
-
-
-3. If you have further queries, you can contact the LIDD team here [to do create LIDD email account].
+2. The [Links page](https://fmendez72.github.io/regio/Links.html) contains helpful links related to data analysis.
 
 
 </div>
 <div class="col-sm-6">
 
-### [Popular Sovereignty vs. the Rule of Law? Defining the Limits of Direct Democracy (LIDD)](https://www.ivr.uzh.ch/en/institutsmitglieder/moeckli/Research-project-LIDD.html)
+### [Framing Cohesion policy: An extended cross-country analysis](https://fmendez72.github.io/regio/)
 
-<a href = "https://fmendez72.github.io/FM_webtest/">
-![](images/lidd2.png)
+<a href = "https://fmendez72.github.io/regio/">
+![](images/cp_data.png)
 </a>
 </div>

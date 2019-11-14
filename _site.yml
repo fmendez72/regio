@@ -1,6 +1,6 @@
-name: "LIDD coding"
+name: "Regio project website"
 navbar:
-  title: "LIDD coding"
+  title: "Regio project website"
   left:
     - text: "Home"
       href: index.html
