@@ -1,0 +1,11 @@
+name: "LIDD coding"
+navbar:
+  title: "LIDD coding"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "Support documents"
+      href: SupportDocuments.html
+    - text: "Links"
+      href: Links.html
+output_dir: "docs"
