@@ -18,7 +18,7 @@ knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
 # Overall conceptualisation
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
 
-#### [View conceptual framwork](https://fmendez72.github.io/FM_webtest/Liddpages/ConceptualMap.html)
+#### <a href="https://fmendez72.github.io/regio/analysis/exploratory0.html" target="_blank">View conceptual framwork</a>
 <br/><br/>
 
 # Descriptives I (Cross-country)
