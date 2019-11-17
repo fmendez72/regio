@@ -1,0 +1,183 @@
+---
+title: "Descriptives I: Country, Region and Frames"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r,echo=FALSE,message=FALSE}
+library(foreign)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(scales)
+library(tidyr)
+library(stringr)
+library(reshape2)
+library(knitr)
+library(kableExtra)
+library(stringr)
+```
+
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+# Prepare dataframe
+library(dplyr)
+
+load("dfFull.Rdata")
+df=dfFull
+df= df %>% mutate_all(na_if,"")
+
+# Fix date
+df=df %>% 
+  mutate(date2=as.Date(date,format = "%Y-%m-%d"),
+         year=str_extract(date, "^.{4}"),
+         year2=year,
+         year2=as.numeric(recode(year2, `2014`="1",`2015`="1",`2016`="2",`2017`="2",`2018`="3",`2019`="3")),
+         dim=as.character(domFrame),
+         dim=as.factor(recode(domFrame,
+                    `Socio-Economic`="Economic",
+                    `Values`="Economic",
+                    `Governance`="Politics",
+                    `Power`="Politics")))
+
+dfTone=df %>% select(id0,tone1,tone2,tone3) %>% 
+  melt(id="id0") %>% 
+  rename(Tone=value)
+
+dfSub=df %>% select(id0,subFrame1,subFrame2,subFrame3) %>% 
+  melt(id="id0") %>% 
+  select(value) %>% 
+  rename(Subframe=value)
+
+dfActor=df %>% select(id0,actor1,actor2,actor3) %>% 
+  melt(id="id0") %>% 
+  select(value) %>% 
+  rename(Actor=value)
+
+dfMyth=df %>% select(id0,myth1,myth2,myth3) %>% 
+  melt(id="id0") %>% 
+  select(value) %>% 
+  rename(Myth=value)
+
+
+dfl=cbind(dfTone,dfSub,dfActor,dfMyth)
+dfl=dfl %>% 
+  arrange(id0)
+
+dfw=df %>% 
+  select(id0,country,NetPayer,level,Europ,site,sourceType,
+         sourceFormat,sourceLevel,wordN,searchTerm,
+         date,date2,year,year2,dim,domTone2,vis,vis2)
+
+dfl=merge(dfl,dfw,by="id0",all.x = TRUE,sort = F)
+
+
+dfl=dfl %>% 
+  mutate(Tone=as.factor(Tone),
+    Tone=recode_factor(Tone, `Negative` = "Negative", 
+                       `Balanced` = "Neutral", 
+                       `Factual` = "Neutral",
+                       `Positive` = "Positive",
+                       .ordered = TRUE),
+                       id0=factor(id0))
+dfl=droplevels(dfl)
+
+```
+
+# Introduction
+This is an overview of the key descriptives, a first step before any model building can be done. 
+
+
+## Countries and Regions
+
+Among the most important distributions for the analysis is the Country * Level cell count. The problem here is the low N for a couple of countries -in particular France, Italy and Germany. Perhaps some more stories could simply be added manually (obviously after coding). A split of at least 70:30 would be the bare minimum.
+
+
+```{r}
+df %>%
+  group_by(country,level) %>%
+  count() %>% 
+  ggbarplot(x="country",y="n",
+            color = "grey20", fill="level",
+            palette = "RdBu",
+            xlab = "",
+            ylab="Count",
+            label = TRUE, 
+            position = position_dodge(0.9),
+            x.text.angle = 45) +
+  ggtitle("Country by Territorial levels")
+
+```
+
+
+
+## Dominant Frames
+Here we can see the issue of very low cell count for Dominant Frame in many country * territorial level cells.
+In particular the Regional level has very low (or simply missing counts) for three of the frames -the only one that has a reasonable distribution is Socio-Economic. 
+
+
+```{r,fig.width=8,fig.height=6.5}
+df %>%
+  group_by(country,level,domFrame) %>%
+  count() %>% 
+  ggbarplot("domFrame", "n",
+            fill="domFrame",
+            color = "darkgrey", 
+            legend="none",
+            palette = "RdBu",
+            facet.by = c("country","level"),
+            ylab = "",
+            label = TRUE, 
+            ncol=4,
+            x.text.angle = 50,
+            xlab = "") +
+  ylim(0,65) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  ggtitle("Dominant frames * Coutry * Level")
+
+```
+
+
+
+## Explore a higher level dimension
+
+We can recode, and have a higher level dimension of Economic (socio-economic and values) vs Politics (governance and power). Obviously we can change the two labels.  
+
+This certainly improves things, the national level looks a bit better, and so does the regional -though there are some very low counts for say Greece.
+
+
+
+```{r,fig.width=8,fig.height=6}
+df %>%
+  group_by(country,level,dim) %>%
+  count() %>% 
+  ggbarplot("dim", "n",
+            fill="dim",
+            color = "darkgrey", 
+            legend="none",
+            palette = "RdBu",
+            facet.by = c("country","level"),
+            ylab = "",
+            label = TRUE, 
+            ncol=4,
+            x.text.angle = 45,
+            xlab = "") +
+  ylim(0,65) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  ggtitle("Dominant Dimension * Coutry * Level")
+
+```
+
+
+# Summary
+
+There's an issue with the cell count for Regional level, which is accentuated by Dominant frames. A recode to a higher level dimension, around Economics vs Politics,  helps.

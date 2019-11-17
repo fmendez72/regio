@@ -22,9 +22,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 <br/><br/>
 
 # Descriptives I (Cross-country)
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+The link below summerises some of the key descriptives. There’s an issue with the cell count for the Regional level, which is accentuated by when including the Dominant frames. However, a recode of the dominant frame, into an overarching Economics vs Politics dimension, seems to improve things.
 
-#### <a href="https://fmendez72.github.io/regio/analysis/exploratory0.html" target="_blank">See general descriptives</a>
+#### <a href="https://fmendez72.github.io/regio/analysis/descriptives1.html" target="_blank">See general descriptives</a>
 <br/><br/>
 
 # Descriptives II (Frames)
