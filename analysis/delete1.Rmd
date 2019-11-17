@@ -1,0 +1,569 @@
+---
+title: "Framing analysis: Exploratory analysis I"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r,echo=FALSE,message=FALSE}
+library(foreign)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(scales)
+library(tidyr)
+library(stringr)
+library(reshape2)
+library(knitr)
+library(kableExtra)
+```
+
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+# Prepare dataframe
+library(dplyr)
+
+load("~/Misc/RegStudies2/df_forLMER.Rdata")
+
+labs1=read.csv("countryControls.csv")
+df=merge(df,labs1,by="country",all.x = TRUE)
+
+# Create unique ID
+df$id0=seq(1:nrow(df))
+
+df=df %>% 
+  mutate(id=factor(id0),
+         domActor=factor(domActor),
+         country=factor(country),
+         level=factor(sourceLevel),
+         visNumber=as.numeric(vis),
+         sourceFormat=factor(sourceFormat))
+
+labs2=read.csv("~/Misc/RegStudies2/Framing/labelsDomActor.csv")
+df=merge(df,labs2,by="domActor",all.x = TRUE)
+
+df=df %>% 
+  mutate(Europ=as.factor(Europ),
+    Europ=factor(Europ,levels = c("None","Medium","High"),
+                 ordered = TRUE)) %>% 
+  drop_na(Europ)
+
+save(df,file="framing1.Rdata")         
+```
+
+# Intro
+Here's an overview of the exploratory analysis, starting off with some descriptives and then some incremental model building. I don't go into any details on the Descriptives -but they actually tell a huge part of the story. Certain results are obvious just from looking at the descriptives -no need to run analyses.
+
+I go into the Tone dependent variable in some detail, I leave the Europeanization without annotation -but the results are there.
+
+# Descriptives
+
+Let's start by plotting the most important distributions for the analysis, which is Country * Level. 
+
+```{r}
+df %>%
+  group_by(country,level) %>%
+  count() %>% 
+  ggbarplot(x="country",y="n",
+            color = "grey20", fill="level",
+            palette = "RdBu",
+            xlab = "",
+            ylab="Count",
+            label = TRUE, 
+            position = position_dodge(0.9),
+            x.text.angle = 45) +
+  ggtitle("Country by Territorial levels")
+
+```
+
+The problem here, I think, is the low N  for a couple of countries -in particular France, Italy and Germany. Perhaps some of these could simply be added manually by us. I'd prefer a 70:30 split to be the bare minimum.
+
+
+### Dominant Frames
+Here we can see the issue of very low cell count for Dominant Frame in many country * level cells.
+```{r,eval=FALSE}
+df %>%
+  group_by(country,level,domFrame) %>%
+  count() %>%
+  reshape2::melt() %>% 
+  dplyr::select(-variable) %>% 
+  kable(format = "html") %>%
+  kable_styling(bootstrap_options = "striped",full_width = F,
+                position = "center")
+
+```
+
+
+```{r,fig.width=8,fig.height=8}
+df %>%
+  group_by(country,level,domFrame) %>%
+  count() %>% 
+  ggbarplot("domFrame", "n",
+            fill="domFrame",
+            color = "darkgrey", 
+            legend="none",
+            palette = "RdBu",
+            facet.by = c("country","level"),
+            ylab = "",
+            label = TRUE, 
+            ncol=4,
+            x.text.angle = 55,
+            xlab = "") +
+  ylim(0,65) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  ggtitle("Dominant frames * Coutry * Level")
+
+```
+
+Low cell count will mess-up a model.
+
+### Dependent Variable: Dominant Tone
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+df %>%
+  group_by(country,domTone2) %>%
+  count() %>% 
+  ggbarplot(x="country",y="n",
+            color = "grey20", fill="domTone2",
+            palette = "RdBu",
+            xlab = "",
+            ylab="Count",
+            label = TRUE, 
+            position = position_dodge(0.9),
+            x.text.angle = 45) +
+  ggtitle("Country by Tone")
+
+
+```
+
+
+### Dependent Variable: Europeanization
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+df %>%
+  group_by(country,Europ) %>%
+  count() %>% 
+  ggbarplot(x="country",y="n",
+            color = "grey20", fill="Europ",
+            palette = "RdBu",
+            xlab = "",
+            ylab="Count",
+            label = TRUE, 
+            position = position_dodge(0.9),
+            x.text.angle = 45) +
+  ggtitle("Country by Europeanization")
+
+
+```
+
+
+```{r,fig.width=8,fig.height=8}
+df %>%
+  group_by(country,level,Europ) %>%
+  count() %>% 
+  ggbarplot("Europ", "n",
+            fill="Europ",
+            color = "darkgrey", 
+            legend="none",
+            palette = "RdBu",
+            facet.by = c("country","level"),
+            ylab = "",
+            label = TRUE, 
+            ncol=4,
+            x.text.angle = 55,
+            xlab = "") +
+  ylim(0,65) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  ggtitle("Europ * Coutry * Level")
+
+```
+
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+library(MASS)
+library(car)
+library(effects)
+m1 <- polr(domTone2 ~ sourceFormat + vis +  country * (level), Hess = T,
+           data = df)
+
+```
+
+# Ordinal regression
+
+To model what I think we're interested in I don't think mult-level models are going to work so well. We're partcularly interested in country * level interactions, which can be modeled.
+
+Let's look at the two dependent variables.
+
+## 1) Explaining Tone
+
+Let's start with something like a favoured model, before inspecting others. We've two dependent variables, and not so many predictors to choose from.
+
+Not surprisingly the regression output is difficult deal with. There are more than 20 coefficients, as well 2 intercepts. Coefficients with large t-values are indicative of important predictors, but with so many interactions it’s hard to tell what’s happening. To evaluate whether the interactions are significant, we can use the Anova function from R's car package to check predictors and interactions.
+
+```{r,echo=FALSE}
+summary(m1)
+```
+
+### Check predictors
+
+The Anova result shows that the interaction of theoretical interest is significant while the sourceFormat is not significant. We can't interpret the interaction coefficients, we need to graph them to understand what's going on.
+
+```{r,echo=FALSE}
+Anova(m1)
+```
+
+
+### Visualise interactions
+
+Since interactions terms are not directly interpretable, even in a simple model, visualisation is the only way to understand what is going on. To see the effect of the interactions we can calculate predicted values for achange in the territorial level while holding all other predictors at fixed values. Plotting the predicted values for these interactions allows us to see how the probabilities change from one level to the other.
+
+```{r,echo=FALSE}
+# extract coefficients
+ef <- effect("country*level", m1)
+eff.p1 <- as.data.frame(ef)
+eff.p2=eff.p1[1:5]
+eff.p2=eff.p2 %>% gather(coef,prob, -country,-level)
+eff.p3=eff.p1 %>% 
+  dplyr::select(country,level,se.prob.Negative,se.prob.Neutral,se.prob.Positive)
+eff.p3=eff.p3 %>% gather(coef,se, -country,-level) %>% 
+  dplyr::select(se)
+eff.p4=cbind(eff.p2,eff.p3)
+
+# Plot effects
+eff.p4 %>% 
+  mutate(level=as.numeric(level),
+         coef=str_replace_all(coef,"prob.","")) %>% 
+  ggplot(aes(x=level, y=prob, color=coef)) + 
+  geom_point(size=3,aes(shape=coef, color=coef)) + 
+  geom_line(size=.6) +
+  geom_ribbon(aes(ymin=prob-se, ymax=prob+se, fill=coef),alpha=0.3,colour = NA) +
+  facet_wrap(~country, ncol=4) +
+  labs(x="Change from National to Regional", y="Probability") + 
+  theme_classic() + 
+  theme(legend.title = element_blank()) +
+  theme(text=element_text(size=18)) +
+  theme(axis.text.x = element_blank(),
+        axis.ticks = element_blank()) +
+  scale_color_manual(breaks = c("1", "2"),
+                     values=c("red3", "green4", "blue3"))
+
+```
+
+Now we can see how the model really works for our key variables, i.e. we have a better idea of what's going on with the interactions at the country level and territorial level.  
+
+For example, for the UK we can clearly see that the probability of being classified as "Positive" increases dramatically when moving from National to Regional. At the same time the probability of being "Neutral" or "Negative" is also reduced. A similar dynamic occurs in France and in Italy. In Germany and Romania there is also some change obvious change in the probability of being "Positve". On the other hand, in Greece and Spain there doesn't seem to be much change, while Austria seems to buck the trend.
+
+Insofar as a paper is concerned. This would probably be enough for stage 1, the analysis of Tone. If we were to do this properly we'd dig deeper.
+
+# An discursus on "Classification" performance
+
+Although polisci papers don't explore this so much, other disciplines do focus on the classification accuracy of models. For instance, it's very important in computer sciences -they have very sophisticated metrics for analysing this, but for now accuracy will do. By contrast, polisci papers are full of garbage can regression models. They just throw everything into a model and look at stars/p-values. There is a big move against this so called p-hacking, i.e., running lots of modes to find significant p-values. That's why a lot of R packages (such as the ordinal regression used here) don't even report p-values, and lots of top journal are following suite too.
+
+In short, it's always good to know how well your model would classify new, unseen stories. It's important to understand this conceptually.
+
+Think of what we're passing on to our model as a new story. When we ask our model to predict the Tone of new story we're providing the model with the following information for a new story:  
+
+-country  
+-territorial level  
+-format (online only dummy)  
+-visibility  
+
+That's it. There isn't much real information there about the story, except for perhaps visibility (adding country co-variates won't help either as you'll see below). 
+
+Let's check out the classification performance of our model.
+
+```{r,echo=FALSE}
+predictedClass <- predict(m1, df)  # predict the classes directly
+```
+
+We can begin by recalling the observed distribution of stories according to our dependent variable "Tone".
+
+#### Observed classes
+```{r}
+table(df$domTone2)
+```
+
+Let's now see the predicted distribution of our model, what would the model we created predict. 
+
+#### Predicted classes
+```{r}
+table(predictedClass)
+```
+
+Let's put it in what is known as a Confusion Matrix (observed class in rows, predicted class in the columns).
+
+#### Confusion matrix
+```{r}
+table(df$domTone2, predictedClass) 
+
+```
+
+Let's calculate the classification accuracy of the model. What we're saying here is that if we give our model new data (we don't have new data, so we have to give it the existing dataset) how well would it perform.
+
+#### Classification accuracy (% correctly classified)
+```{r}
+round(100*mean(as.character(df$domTone2) == as.character(predictedClass), na.rm=T),1)  
+
+```
+
+So we'd get just over 50% accuracy. Is that good? Well a random model classifying 3 categories would perform around 33%. Our model is about 17% better than random guessing.
+
+But how much better are we than a naive model. Such a model takes a shortcut, and simply assigns everything to the majority class. In our case, the majority distribution is "Positive" for tone. So naive models simply classify everything as "Positive". 
+
+A naive model would have a 49.2% accuracy rate.
+
+Let's run a model with some usefuls predictors. 
+```{r,echo=TRUE}
+m1 <- polr(domTone2 ~ sourceFormat + level, Hess = T,
+           data = df)
+
+# Get model summary 
+summary(m1)
+
+# We can always get an idea of p-values (looks good, lots of stars, "level" is significant and so "Format")
+Anova(m1)
+
+```
+
+```{r,echo=TRUE}
+# Use the model m1 to predict the Tone of the stories in our data
+predictedClass <- predict(m1, df)  
+
+# Get a table of predicted classes (note how it's gone for a majority class classification)
+table(predictedClass) 
+
+# Calculate accuracy
+round(100*mean(as.character(df$domTone2) == as.character(predictedClass), na.rm=T),1)  
+
+```
+
+So, what did that model do...it went for the majority class. 
+
+And, how good is our more saturated model? Well it's not great, it's 1.5% better than simply assigning every story to the majority class. 
+
+None of this matters however, because reviewers won't pick up on it. It's not how our discipline works. 
+
+# Other models (a more saturated model)
+
+Let's check some other models. We can try to add more story level info to help the model.
+
+## Adding more story info (Dominant Frame) in the regression
+```{r,echo=TRUE}
+m1 <- polr(domTone2 ~ sourceFormat + vis + domFrame + country * (level),
+           Hess = TRUE,
+           data = df)
+
+# Check the long summary 
+summary(m1)
+
+# Check the key predictors
+Anova(m1)
+```
+
+Here you can see what adding dominant Frame does. Everything else more or less drops out, it has a huge effect as shown by the coefficient. Specifically our variable of theoretical interest drops out, Country * territorial Level interaction.
+
+#### Classification performance
+```{r}
+# Use the model m1 to predict the Tone of the stories in our data
+predictedClass <- predict(m1, df)  
+
+# Calculate accuracy
+round(100*mean(as.character(df$domTone2) == as.character(predictedClass), na.rm=T),1)  
+
+```
+
+Not surprisingly classification performance increases quite markedly. Everything is being driven by the dominant "Frame" variable.
+
+#### Classification performance model with ONLY Dominant Frame predictor
+```{r}
+m1 <- polr(domTone2 ~ domFrame,
+           Hess = TRUE,
+           data = df)
+
+# Use the model m1 to predict the Tone of the stories in our data
+predictedClass <- predict(m1, df)  
+
+# Calculate accuracy
+round(100*mean(as.character(df$domTone2) == as.character(predictedClass), na.rm=T),1)  
+
+```
+
+So basically, adding all these extra variables (country, level, visibility, source format) generate barely a 0.5 % improvement in classification performance than having just the Frame predictor.
+
+## Adding interactions into the regression
+
+Let's now add a country Interction effect to "Frame", as in the model below.
+```{r,echo=TRUE}
+m2 <- polr(domTone2 ~ sourceFormat + vis + country * (level + domFrame),
+           Hess = TRUE,
+           data = df)
+
+```
+
+You can see how unwieldly this whole saturated regression output becomes with so much going on. 
+```{r}
+summary(m2)
+
+```
+
+#### Check predictors/interactions
+
+Still, if we strip it down to variables of interest, a picture does emerge. That picture would be consistent with what we want to show about the interaction -but the interaction itself it's barely signficant.
+```{r}
+Anova(m2)
+```
+
+I guess one can say our new more saturated model, with the Country * Frame interaction, is marginally better than without the interaction. You can see the AIC marginally drop to 1226 (from 1237).
+
+#### Classification performance model with Dominant Frame interaction
+
+```{r}
+# Use the model m1 to predict the Tone of the stories in our data
+predictedClass <- predict(m2, df)  
+
+# Calculate accuracy
+round(100*mean(as.character(df$domTone2) == as.character(predictedClass), na.rm=T),1)  
+
+```
+
+However, the pay-off in accuracy is very minimal. Just over 1%, although close to 68%.
+
+Basically, it seems this is the best model we can get. 
+
+Just in case you're wondering about saturating it further with more country level covariates. Below you can see what happens if you add more country attributes to the model. Let's add a NetPayer dummy (Yes/No) as a covariate. We'll go for a simple model first without any complex interactions.
+
+## Adding Country covariates 
+```{r,echo=TRUE}
+summary(polr(domTone2 ~ vis + country + level + domFrame + NetPayer,
+           Hess = TRUE,
+           data = df))
+
+```
+
+The warning message is basically one of multi-collinearity. NetPayer was actually dropped from the model. Country does not covary with NetPayer, you can't have both in the model. 
+
+
+### Visualising the interaction model (with Dominant Frame) 
+```{r,echo=FALSE}
+# extract coefficients
+ef <- effect("country*level", m2)
+eff.p1 <- as.data.frame(ef)
+eff.p2=eff.p1[1:5]
+eff.p2=eff.p2 %>% gather(coef,prob, -country,-level)
+eff.p3=eff.p1 %>% 
+  dplyr::select(country,level,se.prob.Negative,se.prob.Neutral,se.prob.Positive)
+eff.p3=eff.p3 %>% gather(coef,se, -country,-level) %>% 
+  dplyr::select(se)
+eff.p4=cbind(eff.p2,eff.p3)
+
+# Plot effects
+eff.p4 %>% 
+  mutate(level=as.numeric(level),
+         coef=str_replace_all(coef,"prob.","")) %>% 
+  ggplot(aes(x=level, y=prob, color=coef)) + 
+  geom_point(size=3,aes(shape=coef, color=coef)) + 
+  geom_line(size=.6) +
+  geom_ribbon(aes(ymin=prob-se, ymax=prob+se, fill=coef),alpha=0.3,colour = NA) +
+  facet_wrap(~country, ncol=4) +
+  labs(x="Change from National to Regional", y="Probability") + 
+  theme_classic() + 
+  theme(legend.title = element_blank()) +
+  theme(text=element_text(size=18)) +
+  theme(axis.text.x = element_blank(),
+        axis.ticks = element_blank()) +
+  scale_color_manual(breaks = c("1", "2"),
+                     values=c("red3", "green4", "blue3"))
+
+```
+
+Compared to the visualisation of the somewhat "simpler" model, which admittedly didn't perform so well, this new saturated model is much harder to decipher for our core variables. I can't make much sense of it.
+
+Obviously we don't have to use the saturate model in the paper, even though it is the better model!
+
+
+
+# 1) Explaining Europeanization
+
+Below is the Code running the same model as Tone, but for Europeanization.
+
+I've not had time to annotate the findings.
+
+```{r}
+m1 <- polr(Europ ~ sourceFormat + vis +  country * (level), Hess = T,
+           data = df)
+
+```
+
+### Regression output
+```{r,echo=FALSE}
+summary(m1)
+```
+
+### Check predictors
+```{r,echo=FALSE}
+Anova(m1)
+```
+
+
+### Visualise interactions: Predicted probabilities of Europeanised discussion (None to High)
+```{r,echo=FALSE}
+# extract coefficients
+ef <- effect("country*level", m1)
+eff.p1 <- as.data.frame(ef)
+eff.p2=eff.p1[1:5]
+eff.p2=eff.p2 %>% gather(coef,prob, -country,-level)
+eff.p3=eff.p1 %>% 
+  dplyr::select(country,level,se.prob.None,se.prob.Medium,se.prob.High)
+eff.p3=eff.p3 %>% gather(coef,se, -country,-level) %>% 
+  dplyr::select(se)
+eff.p4=cbind(eff.p2,eff.p3)
+
+# Plot effects
+eff.p4 %>% 
+  mutate(level=as.numeric(level),
+         coef=str_replace_all(coef,"prob.","")) %>% 
+  ggplot(aes(x=level, y=prob, color=coef)) + 
+  geom_point(size=3,aes(shape=coef, color=coef)) + 
+  geom_line(size=.6) +
+  geom_ribbon(aes(ymin=prob-se, ymax=prob+se, fill=coef),alpha=0.3,colour = NA) +
+  facet_wrap(~country, ncol=4) +
+  labs(x="Change from National to Regional", y="Probability") + 
+  theme_classic() + 
+  theme(legend.title = element_blank()) +
+  theme(text=element_text(size=18)) +
+  theme(axis.text.x = element_blank(),
+        axis.ticks = element_blank()) +
+  scale_color_manual(breaks = c("1", "2"),
+                     values=c("red3", "green4", "blue3"))
+
+```
+
+I've not tried to interpret what's going on with our core interaction of interest. You can also have a go. It's basically the same as first graph, what happend to predicted probabilities by shifting left to right on the X axis, the change from National to Regional. The only difference is that  colours used (red/green/blue) now have a different meaning.  
+
+With the exception of Austria -again....a cursory interpretation is that all the blue lines seem to increase, indicating no Europeanised debate as we move from national to the local level. Furthermore, there is generally a dimunition of "High" Europeanization debate in that same move. But overall it is the "None" line that appears dominant. This is probably obvious, National media is more likely to deal with the High Politics of EU integration.
+
+
+#### Classification performance 
+```{r}
+# Use the model m1 to predict the Tone of the stories in our data
+predictedClass <- predict(m1, df)  
+
+# Calculate accuracy
+round(100*mean(as.character(df$Europ) == as.character(predictedClass), na.rm=T),1)  
+
+```
+
+
+# Summary
+
+Overall, I'd say the way to go is to stick to the aggregate results -with a focus on the Country * Level interaction which is of most interest. This can appear as the central element in the paper, and represented in a graph form (there's no other way to interpret interaction coefficients). Complicated regression outputs then go into an extended Appendix.
+
+What would be nice is to shed some qualitative light on what's happening by drawing on country-specific insights that are either in the data or that we know.
+
+*PS. We don't have Poland for now; can be easily added. Or we could simply forget it.*

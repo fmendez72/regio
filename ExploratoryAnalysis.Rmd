@@ -17,9 +17,15 @@ knitr::opts_chunk$set(message=FALSE,warning=FALSE, cache=TRUE)
 
 # Overall conceptualisation
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-
-#### <a href="https://fmendez72.github.io/regio/analysis/exploratory0.html" target="_blank">View conceptual framwork</a>
 <br/><br/>
+
+# Key hypotheses
+1. Lorem ipsum dolor sit amet  
+2. Consectetur adipiscing elit. 
+3. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.  
+4. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+<br/><br/>
+
 
 # Descriptives I (Cross-country)
 The link below summerises some of the key descriptives. There’s an issue with the cell count for the Regional level, which is accentuated by when including the Dominant frames. However, a recode of the dominant frame, into an overarching Economics vs Politics dimension, seems to improve things.
@@ -28,9 +34,9 @@ The link below summerises some of the key descriptives. There’s an issue with 
 <br/><br/>
 
 # Descriptives II (Frames)
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+There an issue with cell count when disaggregation of the Frames by country and level is explored. To overcome the problem of low or missing cell count we can reconceptualise at a higher level. The re-conceptualiastion, around Economics (socio-economic & values) vs Politics (governance & power), still fits concpetually while highlighting the overall problematique nicely: the Politics versus the Economics of CP.
 
-#### <a href="https://fmendez72.github.io/regio/analysis/exploratory0.html" target="_blank">See frames by country</a>
+#### <a href="https://fmendez72.github.io/regio/analysis/descriptives2.html" target="_blank">See frames by country</a>
 <br/><br/>
 
 # Descriptives: Dependent variables (Tone & Europeanization)

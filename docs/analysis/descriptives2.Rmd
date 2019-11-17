@@ -1,0 +1,153 @@
+---
+title: "Descriptives II: Dominant Frames"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r,echo=FALSE,message=FALSE}
+library(foreign)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(scales)
+library(tidyr)
+library(stringr)
+library(reshape2)
+library(knitr)
+library(kableExtra)
+library(stringr)
+```
+
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+# Prepare dataframe
+library(dplyr)
+
+load("dfFull.Rdata")
+df=dfFull
+df= df %>% mutate_all(na_if,"")
+
+# Fix date
+df=df %>% 
+  mutate(date2=as.Date(date,format = "%Y-%m-%d"),
+         year=str_extract(date, "^.{4}"),
+         year2=year,
+         year2=as.numeric(recode(year2, `2014`="1",`2015`="1",`2016`="2",`2017`="2",`2018`="3",`2019`="3")),
+         dim=as.character(domFrame),
+         dim=as.factor(recode(domFrame,
+                    `Socio-Economic`="Economic",
+                    `Values`="Economic",
+                    `Governance`="Politics",
+                    `Power`="Politics")))
+
+dfTone=df %>% select(id0,tone1,tone2,tone3) %>% 
+  melt(id="id0") %>% 
+  rename(Tone=value)
+
+dfSub=df %>% select(id0,subFrame1,subFrame2,subFrame3) %>% 
+  melt(id="id0") %>% 
+  select(value) %>% 
+  rename(Subframe=value)
+
+dfActor=df %>% select(id0,actor1,actor2,actor3) %>% 
+  melt(id="id0") %>% 
+  select(value) %>% 
+  rename(Actor=value)
+
+dfMyth=df %>% select(id0,myth1,myth2,myth3) %>% 
+  melt(id="id0") %>% 
+  select(value) %>% 
+  rename(Myth=value)
+
+
+dfl=cbind(dfTone,dfSub,dfActor,dfMyth)
+dfl=dfl %>% 
+  arrange(id0)
+
+dfw=df %>% 
+  select(id0,country,NetPayer,level,Europ,site,sourceType,
+         sourceFormat,sourceLevel,wordN,searchTerm,
+         date,date2,year,year2,dim,domTone2,vis,vis2)
+
+dfl=merge(dfl,dfw,by="id0",all.x = TRUE,sort = F)
+
+
+dfl=dfl %>% 
+  mutate(Tone=as.factor(Tone),
+    Tone=recode_factor(Tone, `Negative` = "Negative", 
+                       `Balanced` = "Neutral", 
+                       `Factual` = "Neutral",
+                       `Positive` = "Positive",
+                       .ordered = TRUE),
+                       id0=factor(id0))
+dfl=droplevels(dfl)
+
+```
+
+This is an overview of the Frames, a core element in the framing analysis.
+
+
+## Dominant frames
+
+Here we can see quite clearly some of the problems with the Dominant Frames. The cell count is extremely low or absent in most Frames, except for the socio-economic frame. The problem is compounded by territorial level disaggregation.
+
+```{r,fig.width=8,fig.height=8}
+df %>%
+  group_by(country,level,domFrame) %>%
+  count() %>% 
+  ggbarplot("domFrame", "n",
+            fill="domFrame",
+            color = "darkgrey", 
+            legend="none",
+            palette = "RdBu",
+            facet.by = c("country","level"),
+            ylab = "",
+            label = TRUE, 
+            ncol=4,
+            x.text.angle = 55,
+            xlab = "") +
+  ylim(0,65) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  ggtitle("Dominant frames * Coutry * Level")
+
+```
+
+# A two-dimensional solution
+
+We can partially address the low Frame cell count issue, in terms of data and perhaps conceptually too, by combining Frames into an overarching dimension. Economics (socio-economics and values) vs Politics (governance and power).
+
+Here we can see a three-level combination if our core variables. 
+
+```{r,fig.width=8,fig.height=7.5}
+df %>%
+  group_by(country,level,dim) %>%
+  count() %>% 
+  ggbarplot("dim", "n",
+            fill="dim",
+            color = "darkgrey", 
+            legend="none",
+            palette = "RdBu",
+            facet.by = c("country","level"),
+            ylab = "",
+            label = TRUE, 
+            #ncol=8,
+            x.text.angle = 45,
+            xlab = "") +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  ggtitle("Dominant Dimension * Coutry * Level")
+
+```
+
+
+# Summary
+
+Sub-frame needs to be recoded to get a decent distribution. The re-conceptualiastion still fits since it describes the overall problematique nicely: the politics versus the economis of CP.
