@@ -427,25 +427,28 @@ div.tocify {
 <p><br/><br/></p>
 </div>
 </div>
-<div id="descriptives-dependent-variable-tone" class="section level1">
-<h1>Descriptives: Dependent variable (Tone)</h1>
+<div id="descriptives-dependent-variables-tone-europeanization" class="section level1">
+<h1>Descriptives: Dependent variables (Tone &amp; Europeanization)</h1>
 <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
 <div id="tone-by-country" class="section level4">
 <h4><a href="https://fmendez72.github.io/regio/analysis/exploratory0.html" target="_blank">Tone by country</a></h4>
 <p><br/><br/></p>
 </div>
 </div>
-<div id="descriptives-dependent-variable-europeanization" class="section level1">
-<h1>Descriptives: Dependent variable (Europeanization)</h1>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-<div id="europeanization-by-country" class="section level4">
-<h4><a href="https://fmendez72.github.io/regio/analysis/exploratory0.html" target="_blank">Europeanization by country</a></h4>
+<div id="descriptives-stacked-data-format" class="section level1">
+<h1>Descriptives: Stacked data format</h1>
+<p>Stacking the data marginally improves the cell count across outcomes of interest -not by a great amount. The main issue with stacking could be the case of Spain, and to a somewhat lesser extent France. However, you don’t need a regression analysis to realise Frames drive Tone -it seems to be true by defintion or the relation of ideas.</p>
+<div id="stacked-data-summaries" class="section level4">
+<h4><a href="https://fmendez72.github.io/regio/analysis/descriptivesLong.html" target="_blank">Stacked data summaries</a></h4>
 <p><br/><br/></p>
 </div>
 </div>
 <div id="methodology" class="section level1">
 <h1>Methodology</h1>
-<p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam. <br/><br/></p>
+<p>The dependent variables are ordered, Tone on a three-point scale (negative, neutral, positive), while Europeanization is also on a three-point scale (no Europeanization, medium-Europeanisation and high Europeanisation).</p>
+<p>Another element of the data is that has a nested structure: subframes &gt; stories &gt; sites &gt; country. However, the subframes &gt; stories part nesting element is a bit problematic.</p>
+<p>Give the data structure we fit an mixed effects Ordinal regression. The latter can handle the nested structure. We have [Country | Website] random effects and fixed effects for the core variables of interest.</p>
+<p><br/><br/></p>
 </div>
 <div id="model-1" class="section level1">
 <h1>Model 1</h1>

@@ -33,20 +33,25 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 #### <a href="https://fmendez72.github.io/regio/analysis/exploratory0.html" target="_blank">See frames by country</a>
 <br/><br/>
 
-# Descriptives: Dependent variable (Tone)
+# Descriptives: Dependent variables (Tone & Europeanization)
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
 
 #### <a href="https://fmendez72.github.io/regio/analysis/exploratory0.html" target="_blank">Tone by country</a>
 <br/><br/>
 
-# Descriptives: Dependent variable (Europeanization)
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+# Descriptives: Stacked data format
+Stacking the data marginally improves the cell count across outcomes of interest -not by a great amount. The main issue with stacking could be the case of Spain, and to a somewhat lesser extent France. However, you don't need a regression analysis to realise Frames drive Tone -it seems to be true by defintion or the relation of ideas.
 
-#### <a href="https://fmendez72.github.io/regio/analysis/exploratory0.html" target="_blank">Europeanization by country</a>
+#### <a href="https://fmendez72.github.io/regio/analysis/descriptivesLong.html" target="_blank">Stacked data summaries</a>
 <br/><br/>
 
 # Methodology 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.
+The dependent variables are ordered, Tone on a three-point scale (negative, neutral, positive), while Europeanization is also on a three-point scale (no Europeanization, medium-Europeanisation and high Europeanisation). 
+
+Another element of the data is that has a nested structure: subframes > stories > sites > country. However,  the subframes > stories part nesting element is a bit problematic.
+
+Give the data structure we fit an mixed effects Ordinal regression. The latter can handle the nested structure. We have [Country | Website] random effects and fixed effects for the core variables of interest. 
+
 <br/><br/>
 
 
