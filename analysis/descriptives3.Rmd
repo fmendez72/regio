@@ -1,0 +1,173 @@
+---
+title: "Descriptives II: Dominant Frames"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r,echo=FALSE,message=FALSE}
+library(foreign)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(scales)
+library(tidyr)
+library(stringr)
+library(reshape2)
+library(knitr)
+library(kableExtra)
+library(stringr)
+```
+
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+# Prepare dataframe
+library(dplyr)
+
+load("dfFull.Rdata")
+df=dfFull
+df= df %>% mutate_all(na_if,"")
+
+# Fix date
+df=df %>% 
+  mutate(date2=as.Date(date,format = "%Y-%m-%d"),
+         year=str_extract(date, "^.{4}"),
+         year2=year,
+         year2=as.numeric(recode(year2, `2014`="1",`2015`="1",`2016`="2",`2017`="2",`2018`="3",`2019`="3")),
+         dim=as.character(domFrame),
+         dim=as.factor(recode(domFrame,
+                    `Socio-Economic`="Economic",
+                    `Values`="Economic",
+                    `Governance`="Politics",
+                    `Power`="Politics")))
+
+dfTone=df %>% select(id0,tone1,tone2,tone3) %>% 
+  melt(id="id0") %>% 
+  rename(Tone=value)
+
+dfSub=df %>% select(id0,subFrame1,subFrame2,subFrame3) %>% 
+  melt(id="id0") %>% 
+  select(value) %>% 
+  rename(Subframe=value)
+
+dfActor=df %>% select(id0,actor1,actor2,actor3) %>% 
+  melt(id="id0") %>% 
+  select(value) %>% 
+  rename(Actor=value)
+
+dfMyth=df %>% select(id0,myth1,myth2,myth3) %>% 
+  melt(id="id0") %>% 
+  select(value) %>% 
+  rename(Myth=value)
+
+
+dfl=cbind(dfTone,dfSub,dfActor,dfMyth)
+dfl=dfl %>% 
+  arrange(id0)
+
+dfw=df %>% 
+  select(id0,country,NetPayer,level,Europ,site,sourceType,
+         sourceFormat,sourceLevel,wordN,searchTerm,
+         date,date2,year,year2,dim,domTone2,vis,vis2)
+
+dfl=merge(dfl,dfw,by="id0",all.x = TRUE,sort = F)
+
+
+dfl=dfl %>% 
+  mutate(Tone=as.factor(Tone),
+    Tone=recode_factor(Tone, `Negative` = "Negative", 
+                       `Balanced` = "Neutral", 
+                       `Factual` = "Neutral",
+                       `Positive` = "Positive",
+                       .ordered = TRUE),
+                       id0=factor(id0))
+dfl=droplevels(dfl)
+
+```
+
+This is an overview of the two dependent variables, Tone and Europeanization.
+
+
+## Tone
+
+Here we can see a rather low cell count for some groups. But still ok for modeling I would think.
+
+### Dependent Variable I: Dominant Tone
+```{r,echo=FALSE,message=FALSE,warning=FALSE,fig.width=9,fig.height=8}
+df %>%
+  group_by(country,level,domTone2) %>%
+  count() %>% 
+  ggbarplot(x="level",y="n",
+            color = "grey20", fill="domTone2",
+            palette = "RdBu",
+            xlab = "",
+            ylab="Count",
+            legend.title="",
+            facet.by = "country",
+            label = TRUE, 
+            position = position_dodge(0.9),
+            x.text.angle = 45) +
+  ggtitle("Tone * Country * Level")
+
+
+```
+
+
+### Dependent Variable II: Europeanization
+
+Generally the Europeanization variable has a better distribution across the groups.
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+df %>%
+  group_by(country,Europ) %>%
+  count() %>% 
+  ggbarplot(x="country",y="n",
+            color = "grey20", fill="Europ",
+            palette = "RdBu",
+            xlab = "",
+            ylab="Count",
+            label = TRUE, 
+            position = position_dodge(0.9),
+            x.text.angle = 45) +
+  ggtitle("Country by Europeanization")
+
+
+```
+
+
+And it even is OK with further disaggregation at the territorial level.
+
+
+```{r,fig.width=8,fig.height=8}
+df %>%
+  group_by(country,level,Europ) %>%
+  count() %>% 
+  ggbarplot("Europ", "n",
+            fill="Europ",
+            color = "darkgrey", 
+            legend="none",
+            palette = "RdBu",
+            facet.by = c("country","level"),
+            ylab = "",
+            label = TRUE, 
+            ncol=4,
+            x.text.angle = 55,
+            xlab = "") +
+  ylim(0,65) +
+  theme(axis.text.y = element_blank(),
+        axis.ticks.y = element_blank()) +
+  ggtitle("Europ * Coutry * Level")
+
+```
+
+
+
+# Summary
+
+Both variables are OK for the analysis.

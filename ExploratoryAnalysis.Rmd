@@ -40,13 +40,16 @@ There an issue with cell count when disaggregation of the Frames by country and 
 <br/><br/>
 
 # Descriptives: Dependent variables (Tone & Europeanization)
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+Both dependent variables are OK in terms of their distribution across the different groups of interest (mainly country and territorial level). Tone is a little worse than Europeanization, but overall OK.
 
-#### <a href="https://fmendez72.github.io/regio/analysis/exploratory0.html" target="_blank">Tone by country</a>
+
+#### <a href="https://fmendez72.github.io/regio/analysis/descriptives3.html" target="_blank">Tone by country</a>
 <br/><br/>
 
 # Descriptives: Stacked data format
-Stacking the data marginally improves the cell count across outcomes of interest -not by a great amount. The main issue with stacking could be the case of Spain, and to a somewhat lesser extent France. However, you don't need a regression analysis to realise Frames drive Tone -it seems to be true by defintion or the relation of ideas.
+Stacking the data marginally improves the cell count across outcomes of interest -not by a great amount. The main issue with stacking could be the case of Spain, and to a somewhat lesser extent France. 
+
+The other obvious things that emerges is that you don't need regression analysis to realise that Frames drive Tone -it seems to be true by defintion or the relation of ideas.
 
 #### <a href="https://fmendez72.github.io/regio/analysis/descriptivesLong.html" target="_blank">Stacked data summaries</a>
 <br/><br/>
