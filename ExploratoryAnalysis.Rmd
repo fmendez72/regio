@@ -64,20 +64,18 @@ Give the data structure we fit an mixed effects Ordinal regression. The latter c
 <br/><br/>
 
 
-# Model 1 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+# Model 1 (Determinants of Tone unstacked data)
+First we fit a regular ordinal regression. We simple look at the dominant Tone and frames. 
 
-#### <a href="https://fmendez72.github.io/regio/analysis/exploratory0.html" target="_blank">See model 1</a>
+#### <a href="https://fmendez72.github.io/regio/analysis/model1.html" target="_blank">See model 1</a>
 <br/><br/>
 
-# Model 2
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+# Model 2 # (Determinants of Tone stacked data)
+Here we fit a mixed effects ordinal regression. The results of the exploratory analysis can be seen below. The basic point is that further thought is needed on potential country attributes to include in the model
 
-#### <a href="https://fmendez72.github.io/regio/analysis/exploratory0.html" target="_blank">See model 2</a>
+#### <a href="https://fmendez72.github.io/regio/analysis/model2.html" target="_blank">See model 2</a>
 <br/><br/>
 
 # Model N
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-
-#### <a href="https://fmendez72.github.io/regio/analysis/exploratory0.html" target="_blank">See model N</a>
+To be added
 <br/><br/>

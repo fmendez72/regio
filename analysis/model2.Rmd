@@ -1,5 +1,5 @@
 ---
-title: "Model 2: MIxed effects ordinal regression (stacked data)"
+title: "Model 2: Mixed effects ordinal regression (stacked data)"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -163,14 +163,14 @@ m2 = clmm(Tone ~ level + NetPayer +
 ```
 
 ### Summary model 2
-```{r}
+```{r,comment=""}
 summary(m2)
 ```
 
 
 ## Model 3
 In model 3 we will now add the Frames variable (Economics vs Politics frame), called "dim" in the model.  
-```{r}
+```{r,comment=""}
 m3 = clmm(Tone ~ dim + level + NetPayer + 
             vis4 + words + year2 + sourceFormat +  (1|country) + (1|site), 
           Hess = TRUE,
@@ -184,7 +184,7 @@ m3 = clmm(Tone ~ dim + level + NetPayer +
 Here we can see the effect of including Frames. It has a huge coefficient. Moving from an Economics frame to Politics frame is nearly 15 times more likely to be associated with negative tone (that's the odds ratio for a logit value of ~2.7).
 
 We can also see that virtually everything else drops out.
-```{r}
+```{r,comment=""}
 summary(m3)
 ```
 
@@ -193,7 +193,7 @@ summary(m3)
 
 Let's add some interaction effects to the model. This can be seen in the summary output below.
 
-```{r}
+```{r,comment=""}
 m4 = clmm(Tone ~ dim * (level + NetPayer + words + vis4) + year2 + sourceFormat + (1|country) + (1|site), 
           Hess = TRUE,
           data = df,
@@ -204,32 +204,13 @@ m4 = clmm(Tone ~ dim * (level + NetPayer + words + vis4) + year2 + sourceFormat 
 ### Summary model 4
 
 Here we can see most interqaction effects are signficant. Probably because of the powerful effect of the Frame. 
-```{r}
+```{r,comment=""}
 summary(m4)
 ```
 
-```{r,eval=FALSE}
-
-ggpredict(m1, c("dim","NetPayer")) %>% plot(connect.lines=TRUE) +
-  ylab("Predicted Probabilities") +
-  xlab("") +
-  theme_bw(base_size = 18) +
-  theme(legend.title = element_blank()) +
-  ggtitle("Article length by Frame") 
-
-ggpredict(m1, c("dim","level")) %>% plot() +
-  ylab("Predicted Probabilities") +
-  xlab("") +
-  theme_bw(base_size = 18) +
-  theme(legend.title = element_blank()) +
-  ggtitle("Change from Economics frame to Politics frame") 
-  
-```
-
-
 Is the complicated model Model 4 better than Model 3. The model 4 AIC is lower than model 3. The anova comparison of models suggest they are significantly different, leading us to prefer Model 4.
 
-```{r}
+```{r,comment=""}
 anova(m3, m4)
 ```
 
@@ -238,7 +219,7 @@ anova(m3, m4)
 
 Let's re-fit model 4 by removing the variables that didn't add anything (essentially sourceFormat and year) add some interaction effects to the model. 
 
-```{r}
+```{r,comment=""}
 m4 = clmm(Tone ~ dim * (level + NetPayer + words + vis4) + (1|country), Hess = TRUE,
           data = df,
           threshold = "flexible")
@@ -306,7 +287,7 @@ ggpredict(m4, c("dim","words")) %>% plot(connect.lines=TRUE) +
 
 #### Frames * Visibility
 
-Last interaction is the visbility one.
+Last interaction is the visbility one. It's not clear what's happening, and this is in any case not of much interest as a variable.
 
 ```{r,message=FALSE,fig.width=10}
 ggpredict(m4, c("dim","vis4")) %>% plot(connect.lines=TRUE) +
@@ -319,21 +300,33 @@ ggpredict(m4, c("dim","vis4")) %>% plot(connect.lines=TRUE) +
 ```
 
 
-## Model 5: A quick check on an alternative
+## Model 5 A quick check on an alternative
 
 Let's re-fit model 4 with country instead of Net Payer we'll use the country variable to see how this is driving the results.
 
 You can see how country is being driven by Spain.
-```{r}
-m4 = clmm(Tone ~ dim * (level + country + words + vis4) + (1|country) + (1|site), Hess = TRUE,
+```{r,comment=""}
+m5 = clmm(Tone ~ dim * (level + country + words + vis4) + (1|country) + (1|site), Hess = TRUE,
           data = df,
           threshold = "flexible")
 
-summary(m4)
+summary(m5)
 ```
 
-Even more so when graphing this effect. Basically, on the positive tone Spain has virtually certain predicted probabilities.
+When graphing the effects, you can clearly see the impact of Spain. Basically, on the positive tone Spain has virtually certain predicted probabilities for being or not being positive.
 
-<a href = "https://fmendez72.github.io/regio/">
-![](images/spainModel.png)
+![](spainModel.png)
 
+### Compare model 4 with model 5
+
+Model 5 is significantly better than model 4.
+```{r}
+anova(m4,m5)
+```
+
+Indeed, you can just have a model with 2 variables Frame *X* Country that would outperform all models except for model 5.
+
+
+# Summary
+
+It's easy to find significant coefficients in saturated regression models. The difficulty is making sense of them. Graphing helps here when interaction effects are at play. Yet in all these models the Frames overwhelm all others effects. The other significant factor is that country, or rather certain countries, matter.
