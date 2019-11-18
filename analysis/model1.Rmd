@@ -1,5 +1,5 @@
 ---
-title: "Model 1: Ordinal regression"
+title: "Model 1: Ordinal regression (unstacked data)"
 output: html_document
 editor_options: 
   chunk_output_type: console
@@ -101,21 +101,18 @@ m1 <- polr(domTone2 ~ wordN + year2 + sourceFormat + vis +  country * (level), H
 model1<-m1
 ```
 
-# Ordinal regression
+# Ordinal regression: Explaining Tone
+Here we just model a simple Ordinal regression -i.e., the data is not stacked- and the focus is on the Dominant frame and Tone. Mixed effects models are covered elsewhere.
 
-## 1) Explaining Tone
 
-Let's start with something like a favoured model, before inspecting others. We've two dependent variables, and not so many predictors to choose from.
+## Model 1
+Let's start with something like a favoured model, before inspecting others. Dependent variable is Tone, predictors are wordN, year, sourceForamt, visibility, country and level.
 
-Not surprisingly the regression output is difficult deal with (see Annex model 1). There are more than 20 coefficients, as well 2 intercepts. Coefficients with large t-values are indicative of important predictors, but with so many interactions it’s hard to tell what’s happening. To evaluate whether the interactions are significant, we can use the Anova function from R's car package to check predictors and interactions.
-
-```{r,echo=FALSE}
-summary(m1)
-```
+The regression output can be difficult deal with (see Annex model 1). There are more than 20 coefficients, as well 2 intercepts. Coefficients with large t-values are indicative of important predictors, but with so many interactions it’s hard to tell what’s happening. To evaluate whether the interactions are significant as well as other factor variables, we can use the Anova function from R's car package to check predictors and interactions.
 
 ### Check predictors
 
-The Anova result shows that the interaction Country * Level interaction is significant as well as other variables except for sourceFormat and year. We can't interpret the interaction coefficients, we need to graph them to understand what's going on.
+The Anova result shows that the Country * Level interaction is significant as well as other variables except for sourceFormat and year. We can't interpret the interaction coefficients, we need to graph them to understand what's going on.
 
 ```{r,echo=FALSE}
 Anova(m1)
@@ -160,11 +157,10 @@ eff.p4 %>%
 Now we can see how the model really works for the interaction. For example, for the UK we can clearly see that the probability of being classified as "Positive" increases dramatically when moving from National to Regional. At the same time the probability of being "Neutral" or "Negative" is also reduced. A similar dynamic occurs in France and in Italy. In Germany and Romania there is also some change obvious change in the probability of being "Positve". On the other hand, in Greece and Spain there doesn't seem to be much change, while Austria seems to buck the trend.
 
 
-## Adding more story information (Economics vs Politics) in the regression
+## Model 2: Adding more story information (Economics vs Politics) in the regression
 
-The Frame is obviously the key variable explaining Tone. My worry is that it is virtually true by defintion. That's why we get such huge coefficients. The complicated regression is in Annex model 2. For now we can look at core variables.
+The Frame variable (called dim) is obviously the key variable explaining Tone. My worry is that it is virtually true by defintion. That's why we get such huge coefficients. The complicated regression is in Annex model 2. For now we can look at core variables.
 
-#### Putting most of the variables in 
 ```{r}
 m1 <- polr(domTone2 ~ sourceFormat + wordN + year2 + vis + dim + country + level,
            Hess = TRUE,
@@ -172,16 +168,35 @@ m1 <- polr(domTone2 ~ sourceFormat + wordN + year2 + vis + dim + country + level
 model2<-m1
 ```
 
-# Check the key predictors
+### Check the key predictors
 ```{r}
 Anova(m1)
 ```
 
 Here we can see how dim (the Economics vs Politics) drives everything.  We can also see that it is the Frames (called dim) that drives it all. Country is the other signficant predictor. Level drops out. This basically tells us that these are the two core variables.
 
-#### Adding interactions
+### Checking a country attribute
 
-We can add some interactions that would improve the model. The basic message here is that most stuff you interact with Frames is going to be signficant. As is the case with country and level in the model below.
+As an aside, we can see what using a crossed country attribute such as NetPayer does. 
+```{r}
+m1 <- polr(domTone2 ~ sourceFormat + wordN + year2 + vis + dim + NetPayer + level,
+           Hess = TRUE,
+           data = df)
+model2b<-m1
+```
+
+### Check the key predictors with NetPayer
+Here you can see it all drops out. We will come back to this with mixed effects.
+
+```{r}
+Anova(m1)
+```
+
+
+
+## Model 3: Adding interactions
+
+We can add some interactions that would improve the model. The basic message here is that most stuff you start interacting with Frames is going to be signficant. As is the case with country and level in the model below.
 
 ```{r}
 m1 <- polr(domTone2 ~ sourceFormat + wordN + year2 + vis + dim * (country * level),
@@ -195,8 +210,9 @@ Here we've added a complicated three-way interaction (dim X country X level). To
 Anova(m1)
 ```
 
-The three way interaction is not necessary -it's not significant at the 0.05 level. Let's jsut have a 2 way interaction.
 
+## Model 4
+The three way interaction is not necessary -it's not significant at the 0.05 level. So, let's just proceed with the 2 way interaction for frames of model 4 and consider this the best model.
 
 ```{r}
 m1 <- polr(domTone2 ~ sourceFormat + wordN + year2 + vis + dim * (country + level),
@@ -210,7 +226,10 @@ Anova(m1)
 
 ### Visualising the interaction model (with Dominant Frame) 
 
-To see what's happening with interactions you need to plot them. Here's the plot showing where most of the action is: the Frame * Country interaction. This is where you can see what's happening.
+Having established our best model, let's see what's happening with the interactions. You can't really tell from the coefficients. Here's the plot showing where most of the action is: the Frame * Country interaction.
+
+The graph tells the story that will probably apply across the modeling efforts when frames are included. Big changes from in the Negative Tone when moving Economics to Politics frames on the one hand, and for the Postive Tone, when making the same move, but in reverse. These patterns are similar across the countries -albeit with different slopes. Much less happening in the nuetral category.
+
 
 ```{r,echo=FALSE}
 m1 <- polr(domTone2 ~ sourceFormat + wordN + year2 + vis + level + dim * (country),
@@ -254,21 +273,24 @@ eff.p4 %>%
 
 ```
 
-#### Visualis interaction Frames * Level
 
-Here we will look at the Frames * Level interaction. As can be seen there's no change between territorial level (the error plots are on the same horizontal level). The change is the shift from moving from Economics frame to Politics frame.
+### Visualise interaction Frames * Level
+
+Here we will look at the Frames X Level interaction. This interaction has less explanatory power than the Frames X Country interaction above. Even though this interaction appears as significant in the output, you can't see much change between territorial level (the error plots are on the same horizontal level). The only signficannt change is the shift from the from Economics frame to the Politics frame.
 
 ```{r,message=FALSE,warning=FALSE,fig.width=12}
 library(ggeffects)
 ggpredict(m1, c("dim","level")) %>% plot() +
   ylab("Predicted Probabilities") +
   xlab("") +
-  theme_classic(base_size = 18) +
+  theme_bw(base_size = 18) +
   theme(legend.title = element_blank()) +
   ggtitle("Change from Economics frame to Politics frame") 
   
 ```
 
+# Summary
+The basic message is that Frames drives everything in relation to the Tone, and Country is the next most important variable.
 
 
 # Annex model 1
