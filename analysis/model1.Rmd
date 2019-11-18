@@ -1,0 +1,292 @@
+---
+title: "Model 1: Ordinal regression"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+```{r,echo=FALSE,message=FALSE}
+library(foreign)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(scales)
+library(tidyr)
+library(stringr)
+library(reshape2)
+library(knitr)
+library(kableExtra)
+library(stringr)
+```
+
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+# Prepare dataframe
+library(dplyr)
+
+load("dfFull.Rdata")
+df=dfFull
+df= df %>% mutate_all(na_if,"")
+
+# Fix date
+df=df %>% 
+  mutate(date2=as.Date(date,format = "%Y-%m-%d"),
+         year=str_extract(date, "^.{4}"),
+         year2=year,
+         year2=as.numeric(recode(year2, `2014`="1",`2015`="1",`2016`="2",`2017`="2",`2018`="3",`2019`="3")),
+         dim=as.character(domFrame),
+         dim=as.factor(recode(domFrame,
+                    `Socio-Economic`="Economic",
+                    `Values`="Economic",
+                    `Governance`="Politics",
+                    `Power`="Politics")))
+
+dfTone=df %>% select(id0,tone1,tone2,tone3) %>% 
+  melt(id="id0") %>% 
+  rename(Tone=value)
+
+dfSub=df %>% select(id0,subFrame1,subFrame2,subFrame3) %>% 
+  melt(id="id0") %>% 
+  select(value) %>% 
+  rename(Subframe=value)
+
+dfActor=df %>% select(id0,actor1,actor2,actor3) %>% 
+  melt(id="id0") %>% 
+  select(value) %>% 
+  rename(Actor=value)
+
+dfMyth=df %>% select(id0,myth1,myth2,myth3) %>% 
+  melt(id="id0") %>% 
+  select(value) %>% 
+  rename(Myth=value)
+
+
+dfl=cbind(dfTone,dfSub,dfActor,dfMyth)
+dfl=dfl %>% 
+  arrange(id0)
+
+dfw=df %>% 
+  select(id0,country,NetPayer,level,Europ,site,sourceType,
+         sourceFormat,sourceLevel,wordN,searchTerm,
+         date,date2,year,year2,dim,domTone2,vis,vis2)
+
+dfl=merge(dfl,dfw,by="id0",all.x = TRUE,sort = F)
+
+
+dfl=dfl %>% 
+  mutate(Tone=as.factor(Tone),
+    Tone=recode_factor(Tone, `Negative` = "Negative", 
+                       `Balanced` = "Neutral", 
+                       `Factual` = "Neutral",
+                       `Positive` = "Positive",
+                       .ordered = TRUE),
+                       id0=factor(id0))
+dfl=droplevels(dfl)
+
+```
+
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+library(MASS)
+library(car)
+library(effects)
+m1 <- polr(domTone2 ~ wordN + year2 + sourceFormat + vis +  country * (level), Hess = T,
+           data = df)
+model1<-m1
+```
+
+# Ordinal regression
+
+## 1) Explaining Tone
+
+Let's start with something like a favoured model, before inspecting others. We've two dependent variables, and not so many predictors to choose from.
+
+Not surprisingly the regression output is difficult deal with (see Annex model 1). There are more than 20 coefficients, as well 2 intercepts. Coefficients with large t-values are indicative of important predictors, but with so many interactions it’s hard to tell what’s happening. To evaluate whether the interactions are significant, we can use the Anova function from R's car package to check predictors and interactions.
+
+```{r,echo=FALSE}
+summary(m1)
+```
+
+### Check predictors
+
+The Anova result shows that the interaction Country * Level interaction is significant as well as other variables except for sourceFormat and year. We can't interpret the interaction coefficients, we need to graph them to understand what's going on.
+
+```{r,echo=FALSE}
+Anova(m1)
+```
+
+### Visualise interactions
+
+Since interactions terms are not directly interpretable, even in a simple model, visualisation is the only way to understand what is going on. To see the effect of the interactions we can calculate predicted values for a change in the territorial level while holding all other predictors at fixed values. Plotting the predicted values for these interactions allows us to see how the probabilities change from one level to the other.
+
+```{r,echo=FALSE}
+# extract coefficients
+ef <- effect("country*level", m1)
+eff.p1 <- as.data.frame(ef)
+eff.p2=eff.p1[1:5]
+eff.p2=eff.p2 %>% gather(coef,prob, -country,-level)
+eff.p3=eff.p1 %>% 
+  dplyr::select(country,level,se.prob.Negative,se.prob.Neutral,se.prob.Positive)
+eff.p3=eff.p3 %>% gather(coef,se, -country,-level) %>% 
+  dplyr::select(se)
+eff.p4=cbind(eff.p2,eff.p3)
+
+# Plot effects
+eff.p4 %>% 
+  mutate(level=as.numeric(level),
+         coef=str_replace_all(coef,"prob.","")) %>% 
+  ggplot(aes(x=level, y=prob, color=coef)) + 
+  geom_point(size=3,aes(shape=coef, color=coef)) + 
+  geom_line(size=.6) +
+  geom_ribbon(aes(ymin=prob-se, ymax=prob+se, fill=coef),alpha=0.3,colour = NA) +
+  facet_wrap(~country, ncol=4) +
+  labs(x="Change from National to Regional", y="Probability") + 
+  theme_classic() + 
+  theme(legend.title = element_blank()) +
+  theme(text=element_text(size=18)) +
+  theme(axis.text.x = element_blank(),
+        axis.ticks = element_blank()) +
+  scale_color_manual(breaks = c("1", "2"),
+                     values=c("red3", "green4", "blue3"))
+
+```
+
+Now we can see how the model really works for the interaction. For example, for the UK we can clearly see that the probability of being classified as "Positive" increases dramatically when moving from National to Regional. At the same time the probability of being "Neutral" or "Negative" is also reduced. A similar dynamic occurs in France and in Italy. In Germany and Romania there is also some change obvious change in the probability of being "Positve". On the other hand, in Greece and Spain there doesn't seem to be much change, while Austria seems to buck the trend.
+
+
+## Adding more story information (Economics vs Politics) in the regression
+
+The Frame is obviously the key variable explaining Tone. My worry is that it is virtually true by defintion. That's why we get such huge coefficients. The complicated regression is in Annex model 2. For now we can look at core variables.
+
+#### Putting most of the variables in 
+```{r}
+m1 <- polr(domTone2 ~ sourceFormat + wordN + year2 + vis + dim + country + level,
+           Hess = TRUE,
+           data = df)
+model2<-m1
+```
+
+# Check the key predictors
+```{r}
+Anova(m1)
+```
+
+Here we can see how dim (the Economics vs Politics) drives everything.  We can also see that it is the Frames (called dim) that drives it all. Country is the other signficant predictor. Level drops out. This basically tells us that these are the two core variables.
+
+#### Adding interactions
+
+We can add some interactions that would improve the model. The basic message here is that most stuff you interact with Frames is going to be signficant. As is the case with country and level in the model below.
+
+```{r}
+m1 <- polr(domTone2 ~ sourceFormat + wordN + year2 + vis + dim * (country * level),
+           Hess = TRUE,
+           data = df)
+model3<-m1
+```
+
+Here we've added a complicated three-way interaction (dim X country X level). To see how comlicated it is go to Annex model 3. 
+```{r}
+Anova(m1)
+```
+
+The three way interaction is not necessary -it's not significant at the 0.05 level. Let's jsut have a 2 way interaction.
+
+
+```{r}
+m1 <- polr(domTone2 ~ sourceFormat + wordN + year2 + vis + dim * (country + level),
+           Hess = TRUE,
+           data = df)
+model4<-m1
+
+Anova(m1)
+```
+
+
+### Visualising the interaction model (with Dominant Frame) 
+
+To see what's happening with interactions you need to plot them. Here's the plot showing where most of the action is: the Frame * Country interaction. This is where you can see what's happening.
+
+```{r,echo=FALSE}
+m1 <- polr(domTone2 ~ sourceFormat + wordN + year2 + vis + level + dim * (country),
+           Hess = TRUE,
+           data = df)
+
+
+# extract coefficients
+ef <- effect("dim*country", m1)
+eff.p1 <- as.data.frame(ef)
+eff.p2=eff.p1[1:5]
+eff.p2=eff.p2 %>% gather(coef,prob, -dim,-country)
+eff.p3=eff.p1 %>% 
+  dplyr::select(country,dim,se.prob.Negative,se.prob.Neutral,se.prob.Positive)
+eff.p3=eff.p3 %>% gather(coef,se, -dim,-country) %>% 
+  dplyr::select(se)
+eff.p4=cbind(eff.p2,eff.p3)
+
+```
+
+
+```{r}
+
+# Plot effects
+eff.p4 %>% 
+  mutate(dim=as.numeric(dim),
+         coef=str_replace_all(coef,"prob.","")) %>% 
+  ggplot(aes(x=dim, y=prob, color=coef)) + 
+  geom_point(size=3,aes(shape=coef, color=coef)) + 
+  geom_line(size=.6) +
+  geom_ribbon(aes(ymin=prob-se, ymax=prob+se, fill=coef),alpha=0.3,colour = NA) +
+  facet_wrap(~country, ncol=4) +
+  labs(x="Change from Economics frame to Politics frame", y="Probability") + 
+  theme_classic() + 
+  theme(legend.title = element_blank()) +
+  theme(text=element_text(size=18)) +
+  theme(axis.text.x = element_blank(),
+        axis.ticks = element_blank()) +
+  scale_color_manual(breaks = c("1", "2"),
+                     values=c("red3", "green4", "blue3"))
+
+```
+
+#### Visualis interaction Frames * Level
+
+Here we will look at the Frames * Level interaction. As can be seen there's no change between territorial level (the error plots are on the same horizontal level). The change is the shift from moving from Economics frame to Politics frame.
+
+```{r,message=FALSE,warning=FALSE,fig.width=12}
+library(ggeffects)
+ggpredict(m1, c("dim","level")) %>% plot() +
+  ylab("Predicted Probabilities") +
+  xlab("") +
+  theme_classic(base_size = 18) +
+  theme(legend.title = element_blank()) +
+  ggtitle("Change from Economics frame to Politics frame") 
+  
+```
+
+
+
+# Annex model 1
+```{r}
+summary(model1)
+```
+
+# Annex model 2
+```{r}
+summary(model2)
+```
+
+# Annex model 3
+```{r}
+summary(model3)
+```
+
+# Annex model 4
+```{r}
+summary(model4)
+```
