@@ -96,12 +96,17 @@ It's possible to find signficant interactions in other interactions, such as the
 #### <a href="https://fmendez72.github.io/regio/analysis/model1.html" target="_blank">See details of modeling 1 (unstacked data)</a>
 <br/><br/>
 
-# Model 2 # (Determinants of Tone stacked data)
-Here we fit a mixed effects ordinal regression. The results of the exploratory analysis can be seen below. The basic point is that further thought is needed on potential country attributes to include in the model
+# Modeling 2 (Determinants of Tone stacked data)
+Here we fit a mixed effects ordinal regression. There is a lot more going on in the analysis so this has to be read more carefully in the link below. Nonetheless, the basic point remains that further thought is needed on potential country attributes to include in the model when country patterns are by and large very similar.
 
-#### <a href="https://fmendez72.github.io/regio/analysis/model2.html" target="_blank">See model 2</a>
+Here is an example of a better model that includes a Net Payer interaction, which is significant. But goes the wrong way theoretically - net recipients more likely to be negative (panel 1), and marginally less positive (3).
+
+![](analysis/netpayer.png){#id .class width=90% height=90%}
+
+
+#### <a href="https://fmendez72.github.io/regio/analysis/model2.html" target="_blank">See modeling 2 analysis</a>
 <br/><br/>
 
-# Model N
+# Models N
 To be added
 <br/><br/>

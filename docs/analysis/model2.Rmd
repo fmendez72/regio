@@ -260,13 +260,15 @@ It should be noted that these probabilities don't reveal much; there's a margina
 
 
 ```{r,message=FALSE,fig.width=10}
-ggpredict(m4, c("dim","NetPayer")) %>% plot(connect.lines=TRUE) +
+netpayer=ggpredict(m4, c("dim","NetPayer")) %>% plot(connect.lines=TRUE) +
   ylab("Predicted Probabilities") +
   xlab("") +
   theme_bw(base_size = 18) +
   theme(legend.title = element_blank()) +
-  ggtitle("Change in Frame by Net payer (Yes/No)") 
+  ggtitle("Change in Frame by Net payer\nYes (net payer) vs. No (net recipient))") 
 
+netpayer
+ggsave("netpayer.png")
 ```
 
 
