@@ -474,13 +474,13 @@ div.tocify {
 <div id="modeling-1-determinants-of-tone-unstacked-data" class="section level1">
 <h1>Modeling 1 (Determinants of Tone unstacked data)</h1>
 <p>First we fit a regular ordinal regression. All the details are in the link below. The basic story is that once you include Frames in the model, this variable drives everything. Indeed, all that is needed in the model is Frames and Country.</p>
-<p>The interaction effect is shown below for the best model. It clearly shows what happens to the predicted probabilities from a shift from Economic frame to Politics frame on the x axis. It all looks quite similar -so adding country level attributes (rich vs. poor, big vs small) is unlikely to have much of an impact. Nonetheless, including Frames * Country will explain the most in any model.</p>
+<p>The interaction effect is shown below for the best model. It clearly shows what happens to the predicted probabilities from a shift from Economic frame to Politics frame on the x axis. It all looks quite similar -so adding country level attributes (rich vs. poor, big vs small) is unlikely to have much of an impact. Including Frames * Country is likely to always be the best mode in any set up.</p>
 <div class="figure">
 <img src="analysis/e1.png" id="id" class="class" style="width:70.0%" style="height:70.0%" />
 
 </div>
 <p><br/><br/></p>
-<p>It’s possible to find signficant interactions in other interactions, such as the one below. The Frame*Level interaction is signficant. But there’s no real difference between the territorial levels as can be seen below (the shift is between Frames). Interactions need to be graphed to see what’s going on, and here there’s not much going on between territorial levels.</p>
+<p>Evidently, it is possible to find signficant interactions when including Frame, such as the one below. The Frame*Level interaction is signficant. But there’s no real difference between the territorial levels as can be seen below (the effects are between Frames rather than territorial levels). Interactions need to be graphed to see what’s going on, and here there’s not much going on between territorial levels.</p>
 <div class="figure">
 <img src="analysis/e2.png" id="id" class="class" style="width:90.0%" style="height:90.0%" />
 
@@ -492,8 +492,8 @@ div.tocify {
 </div>
 <div id="modeling-2-determinants-of-tone-stacked-data" class="section level1">
 <h1>Modeling 2 (Determinants of Tone stacked data)</h1>
-<p>Here we fit a mixed effects ordinal regression. There is a lot more going on in the analysis so this has to be read more carefully in the link below. Nonetheless, the basic point remains that further thought is needed on potential country attributes to include in the model when country patterns are by and large very similar.</p>
-<p>Here is an example of a better model that includes a Net Payer interaction, which is significant. But goes the wrong way theoretically - net recipients more likely to be negative (panel 1), and marginally less positive (3).</p>
+<p>Here we fit a mixed effects ordinal regression. There is a lot more going on in the analysis so this has to be read more carefully in the link below. Nonetheless, the basic point remains that further thought is needed on potential country attributes to include in the model when country patterns are by and large very similar (as can be seen in the country interaction plot above).</p>
+<p>Here is an example of a better model that includes a Net Payer interaction, which is significant. But goes the wrong way theoretically - that is net recipients are more likely to be negative (panel 1), and marginally less positive (3).</p>
 <div class="figure">
 <img src="analysis/netpayer.png" id="id" class="class" style="width:90.0%" style="height:90.0%" />
 
