@@ -124,8 +124,8 @@ df=subset(df,!is.na(Tone))
 
 The wide dataset (unstacked) had 792 observations, the number of observations has been augmented to `r nrow(df)`. This is the country breakdown. Note that non-replicated number of observations per country is around 100 -with some being lower, e.g. France (93) and Spain (99).
 
-```{r}
-df %>% 
+```{r,message=FALSE}
+pl1=df %>% 
   group_by(country) %>% 
   count() %>% 
   ggbarplot("country", "n",
@@ -140,6 +140,9 @@ df %>%
   theme(axis.text.y = element_blank(),
         axis.ticks.y = element_blank()) +
   ggtitle("N of observations per Coutry")
+
+pl1
+ggsave("pl1.png")
 
 ```
 
@@ -232,8 +235,8 @@ df %>%
 
 Here we look at the Tone by overarching dimension. We don't even need to run a regression to know that the way Frames have been coded/defined drives Tone. Economic frames are overwhelmingly Positve (the blue) whereas Politics frames are largely Negative. The effect is so strong that it is probably true by definition, i.e., by the way in which the terms are defined and coded in practice.
 
-```{r,fig.width=8,fig.height=7.5}
-df %>%
+```{r,fig.width=8,fig.height=7.5,message=FALSE}
+pl3=df %>%
   group_by(dim,Tone,country) %>%
   count() %>% 
   ggbarplot("dim", "n",
@@ -252,6 +255,9 @@ df %>%
         axis.ticks.y = element_blank()) +
   ggtitle("Tone * Country")
 
+pl3
+
+ggsave("pl3.png")
 ```
 
 

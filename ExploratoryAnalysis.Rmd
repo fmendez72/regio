@@ -30,7 +30,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 # Descriptives I (Cross-country)
 There’s an issue with the cell count for the Regional level, which is accentuated when including the Dominant frames (see next section). 
 
-![](analysis/p0.png)
+![](analysis/p0.png){#id .class width=80% height=80%}
 
 
 <br/><br/>
@@ -38,12 +38,12 @@ There’s an issue with the cell count for the Regional level, which is accentua
 # Descriptives II (Frames)
 There an issue with cell count when disaggregation of the Frames by country and level is explored. 
 
-![](analysis/p1.png)
+![](analysis/p1.png){#id .class width=80% height=80%}
 
 To overcome the problem of low or missing cell count we can reconceptualise at a higher level. The re-conceptualiastion, around Economics (socio-economic & values) vs Politics (governance & power), still fits concpetually while highlighting the overall problematique nicely: the Politics versus the Economics of CP.
 
 
-![](analysis/p2.png)
+![](analysis/p2.png){#id .class width=80% height=80%}
 
 <br/><br/>
 
@@ -57,9 +57,17 @@ Both dependent variables are probablyt OK in terms of their distribution across 
 # Descriptives: Stacked data format
 Stacking the data marginally improves the cell count across outcomes of interest -not by a great amount. The main issue with stacking could be the case of Spain, and to a somewhat lesser extent France. 
 
+The number of additional subframes for countries is rather low. In most cases around 30% of cases had multiple subframes (and in Greece ~ 44%). However, in Spain it was only 6 extra stories (~ 6%). Spain, and France, seem to have been coded differently to the rest.  
+
+![](analysis/pl1.png){#id .class width=70% height=70%}
+ <br/><br/>
 The other obvious things that emerges is that you don't need regression analysis to realise that Frames drive Tone -it seems to be true by defintion or the relation of ideas.
 
-#### <a href="https://fmendez72.github.io/regio/analysis/descriptivesLong.html" target="_blank">Stacked data summaries</a>
+![](analysis/pl3.png){#id .class width=80% height=80%}
+
+This shows that Economics is positive, while Politics is negative -this is going to come out very strongly in any regression. 
+
+#### <a href="https://fmendez72.github.io/regio/analysis/descriptivesLong.html" target="_blank">More descriptives on the stacked data summaries</a>
 <br/><br/>
 
 # Methodology 
