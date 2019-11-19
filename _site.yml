@@ -1,6 +1,6 @@
-name: "Regio project website"
+name: "Regio project"
 navbar:
-  title: "Regio project website"
+  title: "Regio project"
   left:
     - text: "Home"
       href: index.html

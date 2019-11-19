@@ -1,5 +1,5 @@
 ---
-title: "Regio project website"
+title: "Regio project"
 output: html_document
 ---
 
