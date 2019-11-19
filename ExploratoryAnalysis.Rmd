@@ -80,10 +80,20 @@ Give the data structure we fit an mixed effects Ordinal regression. The latter c
 <br/><br/>
 
 
-# Model 1 (Determinants of Tone unstacked data)
-First we fit a regular ordinal regression. We simple look at the dominant Tone and frames. 
+# Modeling 1 (Determinants of Tone unstacked data)
+First we fit a regular ordinal regression. All the details are in the link below. The basic story is that once you include Frames in the model, this variable drives everything. Indeed, all that is needed in the model is Frames and Country.
 
-#### <a href="https://fmendez72.github.io/regio/analysis/model1.html" target="_blank">See model 1</a>
+The interaction effect is shown below for the best model. It clearly shows what happens to the predicted probabilities from a shift from Economic frame to Politics frame on the x axis. It all looks quite similar -so adding country level attributes (rich vs. poor, big vs small) is unlikely to have much of an impact. Nonetheless, including Frames * Country will explain the most in any model. 
+
+![](analysis/e1.png){#id .class width=70% height=70%}
+
+ <br/><br/>
+
+It's possible to find signficant interactions in other interactions, such as the one below. The Frame*Level interaction is signficant. But there's no real difference between the territorial levels as can be seen below (the shift is between Frames). Interactions need to be graphed to see what's going on, and here there's not much going on between territorial levels. 
+
+![](analysis/e2.png){#id .class width=90% height=90%}
+
+#### <a href="https://fmendez72.github.io/regio/analysis/model1.html" target="_blank">See details of modeling 1 (unstacked data)</a>
 <br/><br/>
 
 # Model 2 # (Determinants of Tone stacked data)

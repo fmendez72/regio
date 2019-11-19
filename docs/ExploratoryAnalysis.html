@@ -471,11 +471,22 @@ div.tocify {
 <p>Give the data structure we fit an mixed effects Ordinal regression. The latter can handle the nested structure. We have [Country | Website] random effects and fixed effects for the core variables of interest.</p>
 <p><br/><br/></p>
 </div>
-<div id="model-1-determinants-of-tone-unstacked-data" class="section level1">
-<h1>Model 1 (Determinants of Tone unstacked data)</h1>
-<p>First we fit a regular ordinal regression. We simple look at the dominant Tone and frames.</p>
-<div id="see-model-1" class="section level4">
-<h4><a href="https://fmendez72.github.io/regio/analysis/model1.html" target="_blank">See model 1</a></h4>
+<div id="modeling-1-determinants-of-tone-unstacked-data" class="section level1">
+<h1>Modeling 1 (Determinants of Tone unstacked data)</h1>
+<p>First we fit a regular ordinal regression. All the details are in the link below. The basic story is that once you include Frames in the model, this variable drives everything. Indeed, all that is needed in the model is Frames and Country.</p>
+<p>The interaction effect is shown below for the best model. It clearly shows what happens to the predicted probabilities from a shift from Economic frame to Politics frame on the x axis. It all looks quite similar -so adding country level attributes (rich vs. poor, big vs small) is unlikely to have much of an impact. Nonetheless, including Frames * Country will explain the most in any model.</p>
+<div class="figure">
+<img src="analysis/e1.png" id="id" class="class" style="width:70.0%" style="height:70.0%" />
+
+</div>
+<p><br/><br/></p>
+<p>It’s possible to find signficant interactions in other interactions, such as the one below. The Frame*Level interaction is signficant. But there’s no real difference between the territorial levels as can be seen below (the shift is between Frames). Interactions need to be graphed to see what’s going on, and here there’s not much going on between territorial levels.</p>
+<div class="figure">
+<img src="analysis/e2.png" id="id" class="class" style="width:90.0%" style="height:90.0%" />
+
+</div>
+<div id="see-details-of-modeling-1-unstacked-data" class="section level4">
+<h4><a href="https://fmendez72.github.io/regio/analysis/model1.html" target="_blank">See details of modeling 1 (unstacked data)</a></h4>
 <p><br/><br/></p>
 </div>
 </div>

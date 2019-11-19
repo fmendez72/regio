@@ -254,7 +254,7 @@ eff.p4=cbind(eff.p2,eff.p3)
 ```{r}
 
 # Plot effects
-eff.p4 %>% 
+e1=eff.p4 %>% 
   mutate(dim=as.numeric(dim),
          coef=str_replace_all(coef,"prob.","")) %>% 
   ggplot(aes(x=dim, y=prob, color=coef)) + 
@@ -271,6 +271,8 @@ eff.p4 %>%
   scale_color_manual(breaks = c("1", "2"),
                      values=c("red3", "green4", "blue3"))
 
+e1
+ggsave("e1.png")
 ```
 
 
@@ -280,13 +282,15 @@ Here we will look at the Frames X Level interaction. This interaction has less e
 
 ```{r,message=FALSE,warning=FALSE,fig.width=12}
 library(ggeffects)
-ggpredict(m1, c("dim","level")) %>% plot() +
+e2=ggpredict(m1, c("dim","level")) %>% plot() +
   ylab("Predicted Probabilities") +
   xlab("") +
   theme_bw(base_size = 18) +
   theme(legend.title = element_blank()) +
   ggtitle("Change from Economics frame to Politics frame") 
-  
+
+e2
+ggsave("e2.png")
 ```
 
 # Summary
