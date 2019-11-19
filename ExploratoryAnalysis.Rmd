@@ -28,22 +28,30 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 
 # Descriptives I (Cross-country)
-The link below summerises some of the key descriptives. There’s an issue with the cell count for the Regional level, which is accentuated by when including the Dominant frames. However, a recode of the dominant frame, into an overarching Economics vs Politics dimension, seems to improve things.
+There’s an issue with the cell count for the Regional level, which is accentuated when including the Dominant frames (see next section). 
 
-#### <a href="https://fmendez72.github.io/regio/analysis/descriptives1.html" target="_blank">See general descriptives</a>
+![](analysis/p0.png)
+
+
 <br/><br/>
 
 # Descriptives II (Frames)
-There an issue with cell count when disaggregation of the Frames by country and level is explored. To overcome the problem of low or missing cell count we can reconceptualise at a higher level. The re-conceptualiastion, around Economics (socio-economic & values) vs Politics (governance & power), still fits concpetually while highlighting the overall problematique nicely: the Politics versus the Economics of CP.
+There an issue with cell count when disaggregation of the Frames by country and level is explored. 
 
-#### <a href="https://fmendez72.github.io/regio/analysis/descriptives2.html" target="_blank">See frames by country</a>
+![](analysis/p1.png)
+
+To overcome the problem of low or missing cell count we can reconceptualise at a higher level. The re-conceptualiastion, around Economics (socio-economic & values) vs Politics (governance & power), still fits concpetually while highlighting the overall problematique nicely: the Politics versus the Economics of CP.
+
+
+![](analysis/p2.png)
+
 <br/><br/>
 
 # Descriptives: Dependent variables (Tone & Europeanization)
-Both dependent variables are OK in terms of their distribution across the different groups of interest (mainly country and territorial level). Tone is a little worse than Europeanization, but overall OK.
+Both dependent variables are probablyt OK in terms of their distribution across the different groups of interest (although the lower regional level does have a very low count, especially the Tone variable. Europeanization has a slightly better distribution across categories.
 
 
-#### <a href="https://fmendez72.github.io/regio/analysis/descriptives3.html" target="_blank">Tone by country</a>
+#### <a href="https://fmendez72.github.io/regio/analysis/descriptives3.html" target="_blank">More on Tone and Europeanization by country</a>
 <br/><br/>
 
 # Descriptives: Stacked data format

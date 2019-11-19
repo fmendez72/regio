@@ -101,7 +101,7 @@ Among the most important distributions for the analysis is the Country * Level c
 
 
 ```{r}
-df %>%
+p0=df %>%
   group_by(country,level) %>%
   count() %>% 
   ggbarplot(x="country",y="n",
@@ -114,6 +114,9 @@ df %>%
             x.text.angle = 45) +
   ggtitle("Country by Territorial levels")
 
+p0
+ggsave("p0.png")
+
 ```
 
 
@@ -123,8 +126,8 @@ Here we can see the issue of very low cell count for Dominant Frame in many coun
 In particular the Regional level has very low (or simply missing counts) for three of the frames -the only one that has a reasonable distribution is Socio-Economic. 
 
 
-```{r,fig.width=8,fig.height=6.5}
-df %>%
+```{r,fig.width=8,fig.height=6.5,message=FALSE}
+p1<-df %>%
   group_by(country,level,domFrame) %>%
   count() %>% 
   ggbarplot("domFrame", "n",
@@ -142,7 +145,8 @@ df %>%
   theme(axis.text.y = element_blank(),
         axis.ticks.y = element_blank()) +
   ggtitle("Dominant frames * Coutry * Level")
-
+p1
+ggsave("p1.png")
 ```
 
 
@@ -155,8 +159,8 @@ This certainly improves things, the national level looks a bit better, and so do
 
 
 
-```{r,fig.width=8,fig.height=6}
-df %>%
+```{r,fig.width=8,fig.height=6,message=FALSE}
+p2=df %>%
   group_by(country,level,dim) %>%
   count() %>% 
   ggbarplot("dim", "n",
@@ -175,6 +179,8 @@ df %>%
         axis.ticks.y = element_blank()) +
   ggtitle("Dominant Dimension * Coutry * Level")
 
+p2
+ggsave("p2.png")
 ```
 
 
