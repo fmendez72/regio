@@ -107,9 +107,16 @@ Here is an example of a better model that includes a Net Payer interaction, whic
 #### <a href="https://fmendez72.github.io/regio/analysis/model2.html" target="_blank">See modeling 2 analysis</a>
 <br/><br/>
 
-# Modeling 3
-Here we go for a simple model to test Level more explictly. Click on link below to see results of analysis.
+# Model A: Explaining Tone  
+Click on link below to see results of analysis.
 <br/><br/>
 
 #### <a href="https://fmendez72.github.io/regio/analysis/model3.html" target="_blank">See modeling 2 analysis</a>
+<br/><br/>
+
+# Model B: Explaining Europeanization  
+Click on link below to see results of analysis.
+<br/><br/>
+
+#### <a href="https://fmendez72.github.io/regio/analysis/model3_Europ.html" target="_blank">See modeling 2 analysis</a>
 <br/><br/>
