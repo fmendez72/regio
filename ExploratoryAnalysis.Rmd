@@ -114,7 +114,7 @@ Click on link below to see results of analysis.
 #### <a href="https://fmendez72.github.io/regio/analysis/ToneA.html" target="_blank">See favoured model analysis</a>
 
 
-#### <a href="https://fmendez72.github.io/regio/analysis/model3.html" target="_blank">See modeling extended model fitting analysis</a>
+#### <a href="https://fmendez72.github.io/regio/analysis/model3.html" target="_blank">See extended model fitting analysis</a>
 <br/><br/>
 
 
@@ -126,5 +126,5 @@ Click on link below to see results of analysis.
 #### <a href="https://fmendez72.github.io/regio/analysis/EuropA.html" target="_blank">See favoured model analysis</a>
 
 
-#### <a href="https://fmendez72.github.io/regio/analysis/model3_Europ.html" target="_blank">See modeling 2 analysis</a>
+#### <a href="https://fmendez72.github.io/regio/analysis/model3_Europ.html" target="_blank">See extended model fitting analysis</a>
 <br/><br/>

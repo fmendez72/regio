@@ -120,11 +120,8 @@ $(document).ready(function () {
 </div>
 
 
-<div id="model-1" class="section level2">
-<h2>Model 1</h2>
-</div>
-<div id="model" class="section level2">
-<h2>Model</h2>
+<div id="fit-model" class="section level2">
+<h2>Fit model</h2>
 <p>Here are all key variables in model.</p>
 <p><em>Note</em> I’ve used a rolling average for “EU a good thing” for the years 2015:2017 that were in the spreadsheet.</p>
 <pre class="r"><code># Fit model
@@ -134,7 +131,6 @@ m1 = clmm(europ2 ~ level * dim + net_bal_pc + goodMu + equi17 + selfrule + vis4 
           threshold = &quot;flexible&quot;)</code></pre>
 <div id="summary" class="section level3">
 <h3>Summary</h3>
-<p>So in this model the EXACT same 3 variables are signficant: Frames, Level and Word length of story -although the latter to a much lesser degree. In addition, Visibility pops in too (check on that later).</p>
 <pre><code>## Cumulative Link Mixed Model fitted with the Laplace approximation
 ## 
 ## formula: europ2 ~ level * dim + net_bal_pc + goodMu + equi17 + selfrule +  
@@ -173,6 +169,73 @@ m1 = clmm(europ2 ~ level * dim + net_bal_pc + goodMu + equi17 + selfrule + vis4 
 ## None|Medium   0.3652     1.3087   0.279
 ## Medium|High   2.4792     1.3122   1.889
 ## (1 observation deleted due to missingness)</code></pre>
+<p>Here’s the regression output in tidy format focusing on key variables. So in this model the EXACT same 3 variables are signficant as in the TONE regression: Frames, Level and Word length of story -although the latter to a much lesser degree. In addition, Visibility pops in too (check on that later).</p>
+</div>
+<div id="regression-in-tidy-output" class="section level3">
+<h3>Regression in tidy output</h3>
+<table class="huxtable" style="border-collapse: collapse; margin-bottom: 2em; margin-top: 2em; width: 50%; margin-left: auto; margin-right: auto;  ">
+<col><col><tr>
+<td style="vertical-align: top; text-align: center; white-space: nowrap; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0pt 0pt; padding: 4pt 4pt 4pt 4pt;"></td>
+<td style="vertical-align: top; text-align: center; white-space: nowrap; border-style: solid solid solid solid; border-width: 0.8pt 0pt 0.4pt 0pt; padding: 4pt 4pt 4pt 4pt;">Dependent Variable: Europeanization</td>
+</tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">Level:National</td>
+<td style="vertical-align: top; text-align: right; white-space: nowrap; padding: 4pt 4pt 4pt 4pt; font-weight: bold;">1.082 *** (4.268)</td>
+</tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">Frame:Politics</td>
+<td style="vertical-align: top; text-align: right; white-space: nowrap; padding: 4pt 4pt 4pt 4pt; font-weight: bold;">1.608 *** (5.528)</td>
+</tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">Net balance p.c.</td>
+<td style="vertical-align: top; text-align: right; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">0.004 (1.170)</td>
+</tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">EU good thing (average)</td>
+<td style="vertical-align: top; text-align: right; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">-1.868 (-0.710)</td>
+</tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">Quality governance</td>
+<td style="vertical-align: top; text-align: right; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">1.002 (1.766)</td>
+</tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">Level self rule</td>
+<td style="vertical-align: top; text-align: right; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">0.049 (0.726)</td>
+</tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">Visibility: very low | low/medium</td>
+<td style="vertical-align: top; text-align: right; white-space: nowrap; padding: 4pt 4pt 4pt 4pt; font-weight: bold;">0.625 *** (4.401)</td>
+</tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">Visibility: low/medium | high</td>
+<td style="vertical-align: top; text-align: right; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">-0.064 (-0.528)</td>
+</tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">Word length (500:1000)</td>
+<td style="vertical-align: top; text-align: right; white-space: nowrap; padding: 4pt 4pt 4pt 4pt; font-weight: bold;">0.317 * (2.015)</td>
+</tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">Word length (+1000)</td>
+<td style="vertical-align: top; text-align: right; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">0.459 (1.704)</td>
+</tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">Year</td>
+<td style="vertical-align: top; text-align: right; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">0.088 (0.869)</td>
+</tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">Type:Web native</td>
+<td style="vertical-align: top; text-align: right; white-space: nowrap; padding: 4pt 4pt 4pt 4pt;">-0.133 (-0.618)</td>
+</tr>
+<tr>
+<td style="vertical-align: top; text-align: left; white-space: nowrap; border-style: solid solid solid solid; border-width: 0pt 0pt 0.8pt 0pt; padding: 4pt 4pt 4pt 4pt;">Level * Frames</td>
+<td style="vertical-align: top; text-align: right; white-space: nowrap; border-style: solid solid solid solid; border-width: 0pt 0pt 0.4pt 0pt; padding: 4pt 4pt 4pt 4pt; font-weight: bold;">-0.677 * (-2.043)</td>
+</tr>
+<tr>
+<td colspan="2" style="vertical-align: top; text-align: left; white-space: normal; padding: 4pt 4pt 4pt 4pt;">Mixed effects ordinal regression (z values in brackets). Significant coefficients &lt;0.05 in bold. P-value signficance levels:
+ *** p &lt; 0.001;  ** p &lt; 0.01;  * p &lt; 0.05.</td>
+</tr>
+</table>
+
 </div>
 <div id="plot-main-regression-results" class="section level3">
 <h3>Plot main regression results</h3>
