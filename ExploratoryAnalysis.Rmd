@@ -128,3 +128,10 @@ Click on link below to see results of analysis.
 
 #### <a href="https://fmendez72.github.io/regio/analysis/model3_Europ.html" target="_blank">See extended model fitting analysis</a>
 <br/><br/>
+
+
+# Unified Model A: Explaining Tone (includes Actor predictor)  
+Click on link below to see results of analysis.
+<br/><br/>
+
+#### <a href="https://fmendez72.github.io/regio/analysis/unifiedA.html" target="_blank">See favoured model analysis</a>
