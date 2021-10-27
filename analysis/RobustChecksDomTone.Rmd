@@ -1,0 +1,552 @@
+---
+title: "Unified Model: Mixed effects ordinal regression"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Overview
+
+
+```{r,echo=FALSE,message=FALSE}
+library(foreign)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(scales)
+library(tidyr)
+library(stringr)
+library(reshape2)
+library(knitr)
+library(kableExtra)
+library(stringr)
+library(ordinal)
+library(ggeffects)
+library(broom)
+
+```
+
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+load("dfFull.Rdata")
+df=dfFull
+df= df %>% mutate_all(na_if,"")
+
+# Fix date
+df=df %>% 
+  mutate(date2=as.Date(date,format = "%Y-%m-%d"),
+         year=str_extract(date, "^.{4}"),
+         year2=year,
+         year2=as.numeric(recode(year2, `2014`="1",`2015`="1",`2016`="2",`2017`="2",`2018`="3",`2019`="3")),
+         dim=as.character(domFrame),
+         dim=as.factor(recode(domFrame,
+                              `Socio-Economic`="Socio-Economic",
+                              `Values`="Socio-Economic",
+                              `Governance`="Politico-Institutional",
+                              `Power`="Politico-Institutional")))
+
+df=subset(df,!is.na(date2))
+
+df$vis4=recode_factor(df$vis, `very low`="v.low",
+                      `low`="low-medium",
+                      `medium`="low-medium",
+                      `high`="high-very high",
+                      `very high`="high-very high",.ordered = TRUE)
+
+df$level=recode_factor(df$level, `Regional/Local`="Regional")
+
+df$words=cut(df$wordN,
+             breaks = c(0,500,1000,Inf),
+             labels=c("<500","500-1000","+1000"))
+
+
+countryCov=read.csv("countryCov.csv")
+countryCov$bad_thing17=countryCov$bad_thing17*100
+df=merge(df,countryCov,by="country",all.x = TRUE,sort = F)
+
+
+
+# Fix Europeanization
+df=df %>% mutate(Actor1=recode_factor(domActor,
+                                      `National`="Domestic",
+                                      `Subnational`="Domestic",
+                                      `National + Subnational`="Domestic",
+                                      `EU + National`="European",
+                                      `EU + National + Subnational`="European",
+                                      `EU + Subnational`="European",
+                                      `National + Other country`="European",
+                                      `EU`="European",
+                                      `Other country`="European",
+                                      `EU + Other country`="European"))
+
+df=df %>% mutate(Actor2=recode_factor(domActor,
+                                      `National`="Domestic",
+                                      `Subnational`="Domestic",
+                                      `National + Subnational`="Domestic",
+                                      `EU + National`="Mixed",
+                                      `EU + National + Subnational`="Mixed",
+                                      `EU + Subnational`="Mixed",
+                                      `National + Other country`="Mixed",
+                                      `EU`="European",
+                                      `Other country`="European",
+                                      `EU + Other country`="European"))
+
+df$Actor2 <- relevel(df$Actor2, ref = "Mixed")
+
+df$Actor1[df$Actor1=="No actor"]<-NA
+df=droplevels(df)
+
+df=subset(df, !is.na(Actor1))
+df=subset(df, !is.na(vis4))
+
+
+# Create interaction Actor2
+df$dimActor=with(df, interaction(Actor2,dim,sep = "|"))
+
+```
+
+
+# CHANGE DV for Dominant frame
+```{r}
+df$Tone=df$domTone2
+```
+
+
+# CHANGE TO BAD THING
+```{r}
+df$goodMu=df$bad_thing17
+```
+
+
+
+
+# Check cell count of categories
+```{r}
+df %>% 
+  group_by(Tone,level,dim,Actor1) %>% 
+  count() %>% 
+  data.frame()
+
+```
+
+# Check cell count of categories
+```{r}
+df %>% 
+  group_by(Tone,dim) %>% 
+  count() %>% 
+  ggballoonplot(x="Tone",y="dim", size = "n", fill="n",
+ggtheme=theme_bw(base_size = 18))
+
+```  
+
+```{r,fig.width=12,fig.height=4}
+d1=df %>% 
+  group_by(Tone,dim) %>% 
+  count() %>% 
+  ggballoonplot(x="Tone",y="dim",size = "n",
+                size.range = c(10, 20),
+                fill="grey95",
+                color = "black",
+                show.label= TRUE,
+                ggtheme = theme_bw(base_size = 18)) + 
+  theme(legend.position = "none") +
+  ggtitle("Valence by Frame")
+
+
+d2=df %>% 
+  group_by(Tone,level) %>% 
+  count() %>% 
+  ungroup() %>% 
+  mutate(level=recode(level,`Regional`="Regional news",`National`="National news")) %>% 
+  ggballoonplot(x="Tone",y="level",size = "n",
+                size.range = c(10, 20),
+                fill="grey95",
+                color = "black",
+                show.label= TRUE,
+                ggtheme = theme_bw(base_size = 18)) + 
+  theme(legend.position = "none") +
+  ggtitle("Valence by Level")
+
+ggarrange(d1,d2)
+```
+
+# Actor 1 or 2 CHECK
+```{r}
+df$Actor1=df$Actor2
+```
+
+
+# Scale numeric variables
+```{r}
+n1=c("net_bal_pc","cp_pc","equi17","bad_thing17","selfrule","RAI","goodMu")
+df[n1]=lapply(df[n1], function(x)
+  (x - mean(x)) / sd(x))
+```
+
+```{r}
+# Model 0
+m0 = clmm(Tone ~ NetPayer + bad_thing17 + selfrule + (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+
+m1 = clmm(Tone ~ NetPayer + bad_thing17 + selfrule + sourceFormat + level +  (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+
+m2 = clmm(Tone ~ NetPayer + bad_thing17 + selfrule + sourceFormat + level + words + year2 + vis2 + (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+
+m2 = clmm(Tone ~ NetPayer + bad_thing17 + selfrule + words + year2 + sourceFormat + level + (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+
+m3 = clmm(Tone ~ NetPayer + bad_thing17 + selfrule + words + year2 + sourceFormat + level + Actor1 + dim + (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+
+m4 = clmm(Tone ~ NetPayer + bad_thing17 + selfrule + words + year2 + sourceFormat + level * (Actor1 + dim) + (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+
+m5 = clmm(Tone ~ NetPayer + bad_thing17 + selfrule + words + year2 + sourceFormat + level *(Actor1 + dim) + (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+
+
+summary(m0)
+summary(m1)
+summary(m2)
+summary(m3)
+summary(m4)
+summary(m5)
+
+# Model 0 (with interaction)
+m0 = clmm(Tone ~ level * (dim + Actor1) + net_bal_pc + goodMu + equi17 + selfrule + words + year2 + sourceFormat + vis2 + (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+# Model 1 (just story attributes)
+m1 = clmm(Tone ~ words + year2 + sourceFormat + vis2 + (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+# Model 2 (story attributes and controls)
+m2 = clmm(Tone ~ net_bal_pc + goodMu + equi17 + selfrule + words + year2 + sourceFormat + vis2 + (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+# Model 3 (story attributes, controls and core variables1)
+m3 = clmm(Tone ~ level + net_bal_pc + goodMu + equi17 + selfrule + words + year2 + sourceFormat + vis2 + (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+# Model 4 (story attributes, controls and core variables1)
+m4 = clmm(Tone ~ level + Actor1 + net_bal_pc + goodMu + equi17 + selfrule + words + year2 + sourceFormat + vis2 + (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+
+
+# Model 5 (story attributes, controls and core variables1)
+m5 = clmm(Tone ~ level + dim + Actor1 + net_bal_pc + goodMu + equi17 + selfrule + words + year2 + sourceFormat + vis2 + (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+summary(m1)
+summary(m2)
+summary(m3)
+summary(m4)
+summary(m5)
+summary(m0)
+
+# Compare models
+anova(m1,m2,m3,m4,m5,m0)
+
+sum1=do.call(rbind, lapply(list(m1, m2, m3, m4, m5, m0), broom::glance))
+sum2=do.call(rbind, lapply(list(m1, m2, m3, m4, m5, m0), broom::tidy))
+
+write.csv(sum1,"RegressionSummaries.csv")
+write.csv(sum2,"RegrssionOutput.csv")
+
+```
+
+# FRAME INTERACTION
+```{r}
+
+
+# Model 4 (story attributes, controls and core variables1)
+mm4 = clmm(Tone ~ level + dimActor + net_bal_pc + goodMu + equi17 + selfrule + words + year2 + sourceFormat + vis2 + (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+# Model 0 (with interaction)
+mm0 = clmm(Tone ~ level * dimActor + net_bal_pc + goodMu + equi17 + selfrule + words + year2 + sourceFormat + vis2 + (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+
+summary(mm4)
+summary(mm0)
+
+# Compare models
+anova(mm4,mm0)
+
+ggpredict(mm0, terms = c("level","dimActor"), type = "fe") %>% plot()
+```
+
+# Plots
+
+### 3 plots per core variable
+```{r,fig.width=9,fig.height=12}
+# Level
+p1=ggpredict(m0, c("level"),type = "fe")
+p0=p1 %>% 
+  mutate(x=recode(x,`1`="Regional\nnews",`2`="National\nnews"),
+         response.level=recode_factor(response.level,
+                                      `1`="Tone:Negative",
+                                      `2`="Tone:Neutral",
+                                      `3`="Tone:Positive")) %>% 
+  ggplot(aes(x=x, y=predicted)) + 
+  geom_point(size=3) +
+  geom_errorbar(aes(ymin=predicted-std.error, 
+                    ymax=predicted+std.error),
+                size=0.5,width=.1) +
+  facet_grid(~response.level) +
+  theme_bw(base_size = 18) +
+  xlab("") +
+  ylab("Predicted probabilities") +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  ylim(0,0.8) +
+  ggtitle("Level")
+
+# Level
+p1=ggpredict(m0, c("dim"),type = "fe")
+p2=p1 %>% 
+    mutate(x=recode(x,`1`="Socio\neconomic",`2`="Political\ninstitutional"),
+           response.level=recode_factor(response.level,
+                                        `1`="Tone:Negative",
+                                        `2`="Tone:Neutral",
+                                        `3`="Tone:Positive")) %>% 
+    ggplot(aes(x=x, y=predicted)) + 
+    geom_point(size=3) +
+    geom_errorbar(aes(ymin=predicted-std.error, 
+                      ymax=predicted+std.error),
+                  size=0.5,width=.1) +
+    facet_grid(~response.level) +
+    theme_bw(base_size = 18) +
+    xlab("") +
+    ylab("Predicted probabilities") +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+    ylim(0,0.8) +
+  ggtitle("Type of Frame")
+  
+  
+# Level
+p1=ggpredict(m0, c("Actor1"),type = "fe")
+p3=p1 %>% 
+  mutate(x=recode(x,`1`="Domestic",`2`="Mixed",`3`="European"),
+         response.level=recode_factor(response.level,
+                                      `1`="Tone:Negative",
+                                      `2`="Tone:Neutral",
+                                      `3`="Tone:Positive")) %>% 
+  ggplot(aes(x=x, y=predicted)) + 
+  geom_point(size=3) +
+  geom_errorbar(aes(ymin=predicted-std.error, 
+                    ymax=predicted+std.error),
+                size=0.5,width=.1) +
+  facet_grid(~response.level) +
+  theme_bw(base_size = 18) +
+  xlab("") +
+  ylab("Predicted probabilities") +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  ylim(0,0.8) +
+  ggtitle("Actor responsibility")
+
+ggarrange(p0,p2,p3,nrow=3)
+
+```
+
+
+
+#### Plot frame
+```{r,message=FALSE,warning=FALSE,fig.width=9,fig.height=5}
+p1=ggpredict(m0,terms="dim",type = "fe")
+
+p1 %>% 
+  mutate(x=recode(x,`1`="Socio\neconomic",`2`="Politico\ninstitutional"),
+         response.level=recode_factor(response.level,
+           `1`="Tone:Negative",
+           `2`="Tone:Neutral",
+           `3`="Tone:Positive")) %>% 
+  ggplot(aes(x=x, y=predicted)) + 
+  geom_point(size=3)+
+  geom_errorbar(aes(ymin=predicted-std.error, 
+                            ymax=predicted+std.error),
+                size=0.5,width=.1,color="grey10") +
+  #scale_linetype_manual(values=c("dashed", "solid"))+
+  #scale_color_manual(values=c('black','grey60'))+ 
+  facet_grid(~response.level) +
+  theme_bw(base_size = 18) +
+  theme(legend.position = "none") +
+  xlab("") +
+  ylab("Predicted probabilities") +
+  theme(panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank())
+
+```
+
+
+
+## With SE
+```{r,fig.width=9,fig.height=8,message=FALSE}
+p1=ggpredict(m0, c("level","Actor1","dim"),type = "fe")
+#p1=data.frame(p1)
+
+p1 %>% 
+  mutate(x=recode(x,`1`="Regional\nnews",`2`="National\nnews"),
+         response.level=recode_factor(response.level,
+           `1`="Tone:Negative",
+           `2`="Tone:Neutral",
+           `3`="Tone:Positive")) %>% 
+  ggplot(aes(x=x, y=predicted, group=group, color=group)) + 
+  geom_line(position=position_dodge(0.2),aes(linetype=group)) +  
+  geom_point(position=position_dodge(0.2),size=3)+
+  geom_errorbar(aes(ymin=predicted-std.error, 
+                            ymax=predicted+std.error),
+                size=0.5,width=.1,color="grey10",
+                position=position_dodge(0.2)) +
+  #scale_linetype_manual(values=c("dashed", "solid"))+
+  #scale_color_manual(values=c('black','grey60'))+ 
+  labs(color = "    Actor") +
+  facet_grid(facet~response.level) +
+  theme_bw(base_size = 18) +
+  theme(legend.position = "top") +
+  xlab("") +
+  ylab("Predicted probabilities") +
+  theme(panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank()) 
+# +  guides(color = FALSE) +
+
+```
+
+
+## With CIs
+```{r,fig.width=9,fig.height=8,message=FALSE}
+p1=ggpredict(m0, c("level","Actor1","dim"),type = "fe")
+#p1=data.frame(p1)
+
+p1 %>% 
+  mutate(x=recode(x,`1`="Regional\nnews",`2`="National\nnews"),
+         response.level=recode_factor(response.level,
+           `1`="Tone:Negative",
+           `2`="Tone:Neutral",
+           `3`="Tone:Positive")) %>% 
+  ggplot(aes(x=x, y=predicted, group=group, color=group)) + 
+  geom_line(position=position_dodge(0.2),aes(linetype=group)) +  
+  geom_point(position=position_dodge(0.2),size=3)+
+  geom_errorbar(aes(ymin=conf.low, 
+                            ymax=conf.high),
+                size=0.5,width=.1,color="grey10",
+                position=position_dodge(0.2)) +
+  #scale_linetype_manual(values=c("dashed", "solid"))+
+  #scale_color_manual(values=c('black','grey60'))+ 
+  facet_grid(facet~response.level) +
+  theme_bw(base_size = 18) +
+  theme(legend.position = "top") +
+  xlab("") +
+  ylab("Predicted probabilities") +
+  labs(color = "Actor   ") +
+  theme(panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank())
+
+```
+
+
+
+
+#### Plot words
+```{r,message=FALSE,warning=FALSE,fig.width=12,fig.height=5}
+ggpredict(m0, c("words")) %>% plot() +
+  ylab("Predicted probabilities\nfor each level of Tone") +
+  xlab("Different levels of story length") +
+  theme_bw(base_size = 18) +
+  theme(legend.title = element_blank()) +
+  #scale_y_continuous(limits = c(0, 1)) +
+  ggtitle("Word length")
+```
+
+```{r,message=FALSE,warning=FALSE,fig.width=12,fig.height=5}
+ggpredict(m0, c("words","dim")) %>% plot() +
+  ylab("Predicted probabilities\nfor each level of Tone") +
+  xlab("Different levels of story length") +
+  theme_bw(base_size = 18) +
+  theme(legend.title = element_blank()) +
+  #scale_y_continuous(limits = c(0, 1)) +
+  ggtitle("Word length by frame")
+```
+
+#### Plot visibility
+```{r,message=FALSE,warning=FALSE,fig.width=12,fig.height=5}
+ggpredict(m0, c("vis2")) %>% plot() +
+  ylab("Predicted probabilities\nfor each level of Tone") +
+  xlab("Different levels of story length") +
+  theme_bw(base_size = 18) +
+  theme(legend.title = element_blank()) +
+  #scale_y_continuous(limits = c(0, 1)) +
+  ggtitle("Vis")
+```
+
+
+```{r,message=FALSE,warning=FALSE,fig.width=12,fig.height=5}
+ggpredict(m0, c("vis2","dim")) %>% plot() +
+  ylab("Predicted probabilities\nfor each level of Tone") +
+  xlab("Different levels of story length") +
+  theme_bw(base_size = 18) +
+  theme(legend.title = element_blank()) +
+  #scale_y_continuous(limits = c(0, 1)) +
+  ggtitle("Vis by frame")
+```
+

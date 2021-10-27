@@ -1,0 +1,432 @@
+---
+title: "Cluster analysis"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Overview
+
+
+```{r,echo=FALSE,message=FALSE}
+library(foreign)
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(scales)
+library(tidyr)
+library(stringr)
+library(reshape2)
+library(knitr)
+library(kableExtra)
+library(stringr)
+library(ordinal)
+library(ggeffects)
+library(broom)
+
+```
+
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+load("~/Misc/RegStudies2/CombinedData/dfFull.Rdata")
+df=dfFull
+df= df %>% mutate_all(na_if,"")
+
+# Fix date
+df=df %>% 
+  mutate(date2=as.Date(date,format = "%Y-%m-%d"),
+         year=str_extract(date, "^.{4}"),
+         year2=year,
+         year2=as.numeric(recode(year2, `2014`="1",`2015`="1",`2016`="2",`2017`="2",`2018`="3",`2019`="3")),
+         dim=as.character(domFrame),
+         dim=as.factor(recode(domFrame,
+                              `Socio-Economic`="Socio-Economic",
+                              `Values`="Socio-Economic",
+                              `Governance`="Politico-Institutional",
+                              `Power`="Politico-Institutional")))
+
+df=subset(df,!is.na(date2))
+
+df$vis4=recode_factor(df$vis, `very low`="v.low",
+                      `low`="low-medium",
+                      `medium`="low-medium",
+                      `high`="high-very high",
+                      `very high`="high-very high",.ordered = TRUE)
+
+df$level=recode_factor(df$level, `Regional/Local`="Regional")
+
+df$words=cut(df$wordN,
+             breaks = c(0,500,1000,Inf),
+             labels=c("<500","500-1000","+1000"))
+
+
+countryCov=read.csv("~/Misc/RegStudies2/MixedEffects_exp1/countryCov.csv")
+df=merge(df,countryCov,by="country",all.x = TRUE,sort = F)
+
+
+
+# Fix Europeanization
+df=df %>% mutate(Actor1=recode_factor(domActor,
+                                      `National`="Domestic",
+                                      `Subnational`="Domestic",
+                                      `National + Subnational`="Domestic",
+                                      `EU + National`="European",
+                                      `EU + National + Subnational`="European",
+                                      `EU + Subnational`="European",
+                                      `National + Other country`="European",
+                                      `EU`="European",
+                                      `Other country`="European",
+                                      `EU + Other country`="European"))
+
+df=df %>% mutate(Actor2=recode_factor(domActor,
+                                      `National`="Domestic",
+                                      `Subnational`="Domestic",
+                                      `National + Subnational`="Domestic",
+                                      `EU + National`="Mixed",
+                                      `EU + National + Subnational`="Mixed",
+                                      `EU + Subnational`="Mixed",
+                                      `National + Other country`="Mixed",
+                                      `EU`="European",
+                                      `Other country`="European",
+                                      `EU + Other country`="European"))
+
+
+
+df$Actor1[df$Actor1=="No actor"]<-NA
+df=droplevels(df)
+
+df=subset(df, !is.na(Actor1))
+df=subset(df, !is.na(vis4))
+
+
+# Create interaction Actor2
+df$dimActor=with(df, interaction(Actor2,dim,sep = "|"))
+
+```
+
+
+# CHANGE DV for Dominant frame
+```{r}
+df$Tone=df$domTone2
+```
+
+
+# Check cell count of categories
+```{r}
+df %>% 
+  group_by(Tone,level,dim,Actor1) %>% 
+  count() %>% 
+  data.frame()
+
+```
+
+# Check cell count of categories
+```{r}
+df %>% 
+  group_by(Tone,dim) %>% 
+  count() %>% 
+  ggballoonplot(x="Tone",y="dim", size = "n", fill="n",
+ggtheme=theme_bw(base_size = 18))
+
+```  
+
+
+## Frequencies
+```{r,fig.width=12,fig.height=4}
+d1=df %>% 
+  mutate(dim=recode_factor(dim,`Socio-Economic`="Socio\neconomic",`Politico-Institutional`="Politico\ninstitutional")) %>% 
+  group_by(Tone,dim) %>% 
+  count() %>% 
+  ggballoonplot(x="Tone",y="dim",size = "n",
+                size.range = c(10, 20),
+                fill="grey95",
+                color = "black",
+                show.label= TRUE,
+                ggtheme = theme_bw(base_size = 18)) + 
+  theme(legend.position = "none") +
+  ggtitle("Valence by Frame")
+
+
+d2=df %>% 
+  group_by(Tone,level) %>% 
+  count() %>% 
+  ungroup() %>% 
+  mutate(level=recode(level,`Regional`="Regional news",`National`="National news")) %>% 
+  ggballoonplot(x="Tone",y="level",size = "n",
+                size.range = c(10, 20),
+                fill="grey95",
+                color = "black",
+                show.label= TRUE,
+                ggtheme = theme_bw(base_size = 18)) + 
+  theme(legend.position = "none") +
+  ggtitle("Valence by Level")
+
+ggarrange(d1,d2)
+```
+
+
+## Percent
+```{r,fig.width=12,fig.height=4}
+d3=df %>% 
+  mutate(dim=recode_factor(dim,`Socio-Economic`="Socio\neconomic",`Politico-Institutional`="Politico\ninstitutional")) %>% 
+  group_by(Tone,dim) %>% 
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n),
+         freq=round(100*freq,1)) %>% 
+  select(-n) %>% 
+  ggballoonplot(x="Tone",y="dim",size = "freq",
+                size.range = c(10, 20),
+                fill="grey95",
+                color = "black",
+                show.label= TRUE,
+                ggtheme = theme_bw(base_size = 18)) + 
+  theme(legend.position = "none") +
+  ggtitle("Valence by Frame")
+
+
+d4=df %>% 
+  group_by(Tone,level) %>% 
+ summarise(n = n()) %>%
+  mutate(freq = n / sum(n),
+         freq=round(100*freq,1)) %>% 
+  ungroup() %>%
+  select(-n) %>% 
+  mutate(level=recode(level,`Regional`="Regional news",`National`="National news")) %>% 
+  ggballoonplot(x="Tone",y="level",size = "freq",
+                size.range = c(10, 20),
+                fill="grey95",
+                color = "black",
+                show.label= TRUE,
+                ggtheme = theme_bw(base_size = 18)) + 
+  theme(legend.position = "none") +
+  ggtitle("Valence by Level")
+
+ggarrange(d3,d4)
+```
+
+
+
+
+```{r}
+df$Actor1=df$Actor2
+df=droplevels(df)
+
+df=df %>% mutate(
+  level=as.character(level),
+  level=recode(level,`National`="National\nnews",
+               `Regional`="Regional\nnews"))
+
+```
+
+# Descriptives
+
+```{r,warning=FALSE}
+
+p2=df %>% 
+  group_by(Tone) %>% 
+  count() %>% 
+  na.omit() %>% 
+  ggbarplot("Tone", "n",
+            #fill="grey80",
+            #color = "darkgrey", 
+            legend="none",
+            #palette = "RdBu",
+            ylab = "",
+            sort.val = "desc",
+          sort.by.groups = FALSE,
+            label = TRUE,
+            #x.text.angle = 45,
+            xlab = "") +
+  #theme(axis.text.y = element_blank(),
+   #    axis.ticks.y = element_blank()) +
+  ggtitle("Valence") +
+  ylim(0,700)
+
+p1=df %>% 
+  group_by(level) %>% 
+  count() %>% 
+  na.omit() %>% 
+  ggbarplot("level", "n",
+            #fill="grey80",
+            #color = "darkgrey", 
+            legend="none",
+            #palette = "RdBu",
+            ylab = "",
+            sort.val = "desc",
+          sort.by.groups = FALSE,
+            label = TRUE, 
+          width = 0.5,
+            #x.text.angle = 45,
+            xlab = "") +
+  #theme(axis.text.y = element_blank(),
+   #    axis.ticks.y = element_blank()) +
+  ggtitle("Source by level") +
+  ylim(0,700)
+
+
+p3=df %>% 
+  group_by(Actor1) %>% 
+  count() %>% 
+  na.omit() %>% 
+  ggbarplot("Actor1", "n",
+            #fill="grey80",
+            #color = "darkgrey", 
+            legend="none",
+            #palette = "RdBu",
+            ylab = "",
+            sort.val = "desc",
+          sort.by.groups = FALSE,
+            label = TRUE, 
+          width = 0.5,
+            #x.text.angle = 45,
+            xlab = "") +
+  #theme(axis.text.y = element_blank(),
+   #    axis.ticks.y = element_blank()) +
+  ggtitle("Actor") +
+  ylim(0,700)
+
+p4=df %>% 
+  mutate(dim=recode_factor(dim,`Socio-Economic`="Socio\nEconomic",`Politico-Institutional`="Politico\nInstitutional")) %>% 
+  group_by(dim) %>% 
+  count() %>% 
+  na.omit() %>% 
+  ggbarplot("dim", "n",
+            #fill="grey80",
+            #color = "darkgrey", 
+            legend="none",
+            #palette = "RdBu",
+            ylab = "",
+            sort.val = "desc",
+          sort.by.groups = FALSE,
+            label = TRUE, 
+          width = 0.5,
+            #x.text.angle = 45,
+            xlab = "") +
+  #theme(axis.text.y = element_blank(),
+   #    axis.ticks.y = element_blank()) +
+  ggtitle("Frame") +
+  ylim(0,700)
+
+ggarrange(p1,p4,p3,p2)
+
+```
+
+
+# Descriptive Percentages
+```{r,warning=FALSE}
+
+p2=df %>% 
+  group_by(Tone) %>% 
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n),
+         freq=round(100*freq,1)) %>% 
+  na.omit() %>% 
+  ggbarplot("Tone", "freq",
+            #lab.nb.digits=1,
+            fill="grey80",
+            #color = "darkgrey", 
+            legend="none",
+            #palette = "RdBu",
+            ylab = "",
+            sort.val = "desc",
+          sort.by.groups = FALSE,
+            label = TRUE,
+            #x.text.angle = 45,
+            xlab = "") +
+  #theme(axis.text.y = element_blank(),
+   #    axis.ticks.y = element_blank()) +
+  ggtitle("Valence") +
+  ylim(0,80)
+
+p1=df %>% 
+  group_by(level) %>% 
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n),
+         freq=round(100*freq,1)) %>% 
+  na.omit() %>% 
+  ggbarplot("level", "freq",
+            fill="grey80",
+            #color = "darkgrey", 
+            legend="none",
+            #palette = "RdBu",
+            ylab = "percent",
+            sort.val = "desc",
+          sort.by.groups = FALSE,
+            label = TRUE, 
+          width = 0.5,
+            #x.text.angle = 45,
+            xlab = "") +
+  #theme(axis.text.y = element_blank(),
+   #    axis.ticks.y = element_blank()) +
+  ggtitle("Source by level") +
+  ylim(0,80)
+
+
+p3=df %>% 
+  group_by(Actor1) %>% 
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n),
+         freq=round(100*freq,1)) %>% 
+  na.omit() %>% 
+  ggbarplot("Actor1", "freq",
+            fill="grey80",
+            #color = "darkgrey", 
+            legend="none",
+            #palette = "RdBu",
+            ylab = "percent",
+            sort.val = "desc",
+          sort.by.groups = FALSE,
+            label = TRUE, 
+          #width = 0.5,
+            #x.text.angle = 45,
+            xlab = "") +
+  #theme(axis.text.y = element_blank(),
+   #    axis.ticks.y = element_blank()) +
+  ggtitle("Actor responsibility") +
+  ylim(0,80)
+
+p4=df %>% 
+  mutate(dim=recode_factor(dim,`Socio-Economic`="Socio\nEconomic",`Politico-Institutional`="Politico\nInstitutional")) %>% 
+  group_by(dim) %>% 
+  summarise(n = n()) %>%
+  mutate(freq = n / sum(n),
+         freq=round(100*freq,1)) %>% 
+  na.omit() %>% 
+  ggbarplot("dim", "freq",
+            fill="grey80",
+            #color = "darkgrey", 
+            legend="none",
+            #palette = "RdBu",
+            ylab = "",
+            sort.val = "desc",
+          sort.by.groups = FALSE,
+            label = TRUE, 
+          width = 0.5,
+            #x.text.angle = 45,
+            xlab = "") +
+  #theme(axis.text.y = element_blank(),
+   #    axis.ticks.y = element_blank()) +
+  ggtitle("Type of Frame") +
+  ylim(0,80)
+
+ggarrange(p1,p4,p3,p2)
+
+```
+
+
+
+```{r,eval=FALSE}
+df %>% 
+  group_by(level,Actor1,dim) %>% 
+  count() %>% 
+  na.omit() %>% 
+  ggballoonplot(x="dim",y="level", size = "n", fill="n",
+                facet.by = "Actor1", ncol = 2,
+ggtheme=theme_bw(base_size = 18))
+```
+

@@ -6,6 +6,8 @@ navbar:
       href: index.html
     - text: "Exploratory analysis"
       href: ExploratoryAnalysis.html
+    - text: "Exploratory analysis2"
+      href: ExploratoryAnalysis2.html
     - text: "Links"
       href: Links.html
 output_dir: "docs"

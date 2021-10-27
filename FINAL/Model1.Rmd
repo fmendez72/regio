@@ -1,0 +1,532 @@
+---
+title: "Mixed effects ordinal regression: Model 1"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+
+# Overview
+
+Model 2 refers to ALL answer options in the Actor responsibility variable coded as an EU is mentioned dummy (i.e., EU + other is mentioned). As shown below:
+
+```{r,eval=FALSE,echo=TRUE}
+
+# An EU dummy
+df=df %>% mutate(Actor2=recode_factor(actor1,
+                                      `National`="Domestic",
+                                      `Subnational`="Domestic",
+                                      `National + Subnational`="Domestic",
+                                      `EU + National`="European",
+                                      `EU + National + Subnational`="European",
+                                      `EU + Subnational`="European",
+                                      `National + Other country`="European",
+                                      `EU`="European",
+                                      `Other country`="European",
+                                      `EU + Other country`="European"))
+
+```
+
+
+```{r,echo=FALSE,message=FALSE}
+
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(scales)
+library(tidyr)
+library(reshape2)
+library(knitr)
+library(kableExtra)
+library(stringr)
+library(ordinal)
+library(ggeffects)
+library(broom)
+
+```
+
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+# UPLOAD FIXED DATAFRAME (Manually FIXED missing DATES)
+load("~/Dropbox/testGitHub/regio/FINAL/df.Rdata")
+```
+
+
+```{r}
+m0 = clmm(Tone ~ 1 +
+            (1|country) + (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+
+m1 = clmm(Tone ~ 
+            Net + 
+            bad_thing17 +  
+            selfrule + 
+            equi17 +
+            (1|country) + (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+m2 = clmm(Tone ~ 
+            Net + 
+            bad_thing17 +  
+            selfrule + 
+            equi17 +
+            words + 
+            year2 + 
+            vis2 + 
+            sourceFormat + 
+            (1|country) + (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+
+m3 = clmm(Tone ~ 
+            Net + 
+            bad_thing17 +  
+            selfrule + 
+            equi17 +
+            words + 
+            year2 + 
+            vis2 + 
+            sourceFormat + 
+            level + 
+            (1|country) + (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+
+
+m4 = clmm(Tone ~ 
+            Net + 
+            bad_thing17 +  
+            selfrule + 
+            equi17 +
+            words + 
+            year2 + 
+            vis2 + 
+            sourceFormat + 
+            level + 
+            Actor2 + 
+            dim + 
+            (1|country) + (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+m5 = clmm(Tone ~ 
+            Net + 
+            bad_thing17 +  
+            selfrule + 
+            equi17 +
+            words + 
+            year2 + 
+            vis2 + 
+            sourceFormat + 
+            level + 
+            Actor2 + 
+            dim + 
+            level:Actor2 + 
+            level:dim +
+            (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+m6 = clmm(Tone ~  
+            words + 
+            year2 + 
+            vis2 + 
+            sourceFormat + 
+            level + 
+            Actor2 + 
+            dim + 
+            level:Actor2 + 
+            level:dim +
+            (1|country) +  (1|site),
+          Hess = TRUE,
+          data = df,
+          threshold = "flexible")
+
+
+library(purrr)
+models <- list(m0 = m0, m1 = m1, m2 = m2, m3=m3,
+               m4=m4,m5=m5)
+sum2=purrr::map_df(models, broom::tidy, .id = "model")
+sum1=purrr::map_df(models, broom::glance, .id = "model")
+
+make_stars <- function(pval) {
+  stars = ""
+  if(pval <= 0.001)
+    stars = "***"
+  if(pval > 0.001 & pval <= 0.01)
+    stars = "**"
+  if(pval > 0.01 & pval <= 0.05)
+    stars = "*"
+  if(pval > 0.05 & pval <= 0.1)
+     stars = "XY"
+  stars
+}
+
+
+sum2=sum2 %>% 
+  mutate(signif = sapply(p.value, function(x) make_stars(x)),
+         estimate=round(estimate,3),
+         std.error=round(std.error,3),
+         est=paste(estimate,signif,sep=""),
+         est=paste(est,std.error,sep=" ("),
+         est=paste(est, ")",sep="")) 
+
+sum2=sum2 %>% 
+  select(model,est)
+
+md0=data.frame(t(VarCorr(m0)))
+md1=data.frame(t(VarCorr(m1)))
+md2=data.frame(t(VarCorr(m2)))
+md3=data.frame(t(VarCorr(m3)))
+md4=data.frame(t(VarCorr(m4)))
+md5=data.frame(t(VarCorr(m5)))
+
+
+cVar=rbind(md0,md1,md2,md3,md4,md5)
+cVar=data.frame(unlist(cVar))
+mod=c(0,1,2,3,4,5,0,1,2,3,4,5)
+cVar=cbind(mod,cVar)
+cVar=cVar %>% 
+  arrange(mod)
+write.csv(cVar,"cVar.csv")
+
+labs1=c("edf","logLik","AIC","BIC")
+sum1=sapply(sum1[labs1],function(x)
+  round(x,1))
+write.csv(sum1,"RegressionSummaries.csv")
+write.csv(sum2,"RegrssionOutput.csv")
+
+```
+
+
+# Regression summaries
+```{r,echo=TRUE}
+# Model Intercept only ()
+summary(m0)
+
+# Model 1 (Macro)
+summary(m1)
+
+# Model 2 (Macro + Article)
+summary(m2)
+
+# Model 3 (Macro + Article + Meso)
+summary(m3)
+
+# Model 4 (Macro + Article + Meso + Micro)
+summary(m4)
+
+# Model 5 (interaction)
+summary(m5)
+
+# Model 6 (without country)
+summary(m6)
+
+```
+
+# Comparison of models
+```{r,echo=TRUE}
+# Compare All models
+a1=anova(m0,m1,m2,m3,m4,m5)
+a1
+a1=data.frame(a1)
+write.csv(a1,"anova.csv")
+
+# Compare M4 to M5 without country
+anova(m5,m6)
+```
+
+# Plots
+
+## 3 plots per core variable
+```{r,fig.width=9,fig.height=12}
+# Level
+p1=ggpredict(m5, c("level"),type = "fe")
+p0=p1 %>% 
+  mutate(x=recode(x,`1`="Regional\nnews",`2`="National\nnews"),
+         response.level=recode_factor(response.level,
+                                      `1`="Tone:Negative",
+                                      `2`="Tone:Neutral",
+                                      `3`="Tone:Positive")) %>% 
+  ggplot(aes(x=x, y=predicted)) + 
+  geom_point(size=3) +
+  geom_errorbar(aes(ymin=predicted-std.error, 
+                    ymax=predicted+std.error),
+                size=0.5,width=.1) +
+  facet_grid(~response.level) +
+  theme_bw(base_size = 18) +
+  xlab("") +
+  ylab("Predicted probabilities") +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  ylim(0,0.8) +
+  ggtitle("Level")
+
+# Level
+p1=ggpredict(m5, c("dim"),type = "fe")
+p2=p1 %>% 
+    mutate(x=recode(x,`1`="Socio\neconomic",`2`="Political\ninstitutional"),
+           response.level=recode_factor(response.level,
+                                        `1`="Tone:Negative",
+                                        `2`="Tone:Neutral",
+                                        `3`="Tone:Positive")) %>% 
+    ggplot(aes(x=x, y=predicted)) + 
+    geom_point(size=3) +
+    geom_errorbar(aes(ymin=predicted-std.error, 
+                      ymax=predicted+std.error),
+                  size=0.5,width=.1) +
+    facet_grid(~response.level) +
+    theme_bw(base_size = 18) +
+    xlab("") +
+    ylab("Predicted probabilities") +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+    ylim(0,0.8) +
+  ggtitle("Type of Frame")
+  
+  
+# Level
+p1=ggpredict(m5, c("Actor2"),type = "fe")
+p3=p1 %>% 
+  mutate(x=recode(x,`1`="Domestic",`2`="European"),
+         response.level=recode_factor(response.level,
+                                      `1`="Tone:Negative",
+                                      `2`="Tone:Neutral",
+                                      `3`="Tone:Positive")) %>% 
+  ggplot(aes(x=x, y=predicted)) + 
+  geom_point(size=3) +
+  geom_errorbar(aes(ymin=predicted-std.error, 
+                    ymax=predicted+std.error),
+                size=0.5,width=.1) +
+  facet_grid(~response.level) +
+  theme_bw(base_size = 18) +
+  xlab("") +
+  ylab("Predicted probabilities") +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  ylim(0,0.8) +
+  ggtitle("Actor responsibility")
+
+ggarrange(p0,p2,p3,nrow=3)
+
+```
+
+
+
+## Interaction plot using SE
+```{r,fig.width=9,fig.height=8,message=FALSE}
+p1=ggpredict(m5, c("level","Actor2","dim"),type = "fe")
+#p1=data.frame(p1)
+
+p1 %>% 
+  mutate(x=recode(x,`1`="Regional\nnews",`2`="National\nnews"),
+         response.level=recode_factor(response.level,
+           `1`="Tone:Negative",
+           `2`="Tone:Neutral",
+           `3`="Tone:Positive")) %>% 
+  ggplot(aes(x=x, y=predicted, group=group, color=group)) + 
+  geom_line(position=position_dodge(0.2)) +  
+  geom_point(position=position_dodge(0.2),size=3)+
+  geom_errorbar(aes(ymin=predicted-std.error, 
+                            ymax=predicted+std.error),
+                size=0.5,width=.1,color="grey10",
+                position=position_dodge(0.2)) +
+  labs(color = "    Actor") +
+  facet_grid(facet~response.level) +
+  theme_bw(base_size = 18) +
+  theme(legend.position = "top") +
+  xlab("") +
+  ylab("Predicted probabilities") +
+  theme(panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank()) 
+# +  guides(color = FALSE) +
+
+```
+
+
+## Interaction plot using Confidence Intervals
+```{r,fig.width=9,fig.height=8,message=FALSE}
+p1=ggpredict(m5, c("level","Actor2","dim"),type = "fe")
+#p1=data.frame(p1)
+
+p1 %>% 
+  mutate(x=recode(x,`1`="Regional\nnews",`2`="National\nnews"),
+         response.level=recode_factor(response.level,
+           `1`="Tone:Negative",
+           `2`="Tone:Neutral",
+           `3`="Tone:Positive")) %>% 
+  ggplot(aes(x=x, y=predicted, group=group, color=group)) + 
+  geom_line(position=position_dodge(0.2)) +  
+  geom_point(position=position_dodge(0.2),size=3)+
+  geom_errorbar(aes(ymin=conf.low, 
+                            ymax=conf.high),
+                size=0.5,width=.1,color="grey10",
+                position=position_dodge(0.2)) +
+  facet_grid(facet~response.level) +
+  theme_bw(base_size = 18) +
+  theme(legend.position = "top") +
+  xlab("") +
+  ylab("Predicted probabilities") +
+  labs(color = "Actor   ") +
+  theme(panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      panel.grid.major.x = element_blank(),
+      panel.grid.minor.x = element_blank())
+
+```
+
+
+# Annex
+
+#### Plot the two territoriality Interactions
+
+As can be seen there are some effects, but difficult to decipher. This is because the effects are being masked by SubFrame and Actor reponsibility jointly.
+
+```{r,fig.width=15,fig.height=5.5,message=FALSE}
+# 2way FRAME
+p1=ggpredict(m5, c("dim","level"),type = "fe") 
+
+pp1=p1 %>% 
+  mutate(x=recode(x,`1`="ECO",`2`="POL"),
+         response.level=recode_factor(response.level,
+                                      `1`="Tone:Negative",
+                                      `2`="Tone:Neutral",
+                                      `3`="Tone:Positive")) %>% 
+  ggplot(aes(x=x, y=predicted, group=group, color=group)) + 
+  geom_point(position=position_dodge(0.1),size=3)+
+  geom_errorbar(aes(ymin=predicted-std.error, 
+                    ymax=predicted+std.error),
+                size=0.5,width=.3,color="grey10",
+                position=position_dodge(0.1)) +
+  labs(color = "") +
+  facet_grid(~response.level) +
+  theme_bw(base_size = 18) +
+  theme(legend.position = "top") +
+  xlab("") +
+  ylab("Predicted probabilities") +
+  ylim(0,1) +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  ggtitle("Sub-Frame")
+
+
+# 2way FRAME
+p1=ggpredict(m5, c("Actor2","level"),type = "fe") 
+
+pp2=p1 %>% 
+  mutate(x=recode(x,`1`="Domestic",`2`="European"),
+         response.level=recode_factor(response.level,
+                                      `1`="Tone:Negative",
+                                      `2`="Tone:Neutral",
+                                      `3`="Tone:Positive")) %>% 
+  ggplot(aes(x=x, y=predicted, group=group, color=group)) + 
+  geom_point(position=position_dodge(0.1),size=3)+
+  geom_errorbar(aes(ymin=predicted-std.error, 
+                    ymax=predicted+std.error),
+                size=0.5,width=.3,color="grey10",
+                position=position_dodge(0.1)) +
+  labs(color = "") +
+  facet_grid(~response.level) +
+  theme_bw(base_size = 18) +
+  theme(legend.position = "top") +
+  xlab("") +
+  ylab("") +
+  ylim(0,1) +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) +
+  ggtitle("Actor responsibility")
+
+
+ggarrange(pp1,pp2)
+```
+
+In this last graph we can see the effects more clearly. How actor responsibility and sub frame are affected by territoriality.
+
+## Interaction plot (SE's) with Regional/National same line
+```{r,fig.width=7.5,fig.height=5.5,message=FALSE}
+p1=ggpredict(m5, c("dim","level","Actor2"),type = "fe") 
+
+p1 %>% 
+  mutate(x=recode(x,`1`="ECO",`2`="POL"),
+         response.level=recode_factor(response.level,
+                                      `1`="Tone:Negative",
+                                      `2`="Tone:Neutral",
+                                      `3`="Tone:Positive")) %>% 
+  ggplot(aes(x=x, y=predicted, group=group, color=group)) + 
+  geom_point(position=position_dodge(0.1),size=3)+
+  geom_errorbar(aes(ymin=predicted-std.error, 
+                    ymax=predicted+std.error),
+                size=0.5,width=.3,color="grey10",
+                position=position_dodge(0.1)) +
+  labs(color = "    Territoriality") +
+  facet_grid(facet~response.level) +
+  theme_bw(base_size = 18) +
+  theme(legend.position = "top") +
+  xlab("") +
+  ylab("Predicted probabilities") +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) 
+
+```
+
+
+## TESTING REDUCED MODEL: Interaction plot (SE's) with Regional/National same line
+```{r,fig.width=7.5,fig.height=5.5,message=FALSE}
+p1=ggpredict(m5, c("dim","level","Actor2"),type = "fe") 
+
+p1 %>% 
+  mutate(x=recode(x,`1`="ECO",`2`="POL"),
+         response.level=recode_factor(response.level,
+                                      `1`="Tone:Negative",
+                                      `2`="Tone:Neutral",
+                                      `3`="Tone:Positive")) %>% 
+  ggplot(aes(x=x, y=predicted, group=group, color=group)) + 
+  geom_point(position=position_dodge(0.1),size=3)+
+  geom_errorbar(aes(ymin=predicted-std.error, 
+                    ymax=predicted+std.error),
+                size=0.5,width=.3,color="grey10",
+                position=position_dodge(0.1)) +
+  labs(color = "    Territoriality") +
+  facet_grid(facet~response.level) +
+  theme_bw(base_size = 18) +
+  theme(legend.position = "top") +
+  xlab("") +
+  ylab("Predicted probabilities") +
+  theme(panel.grid.major.y = element_blank(),
+        panel.grid.minor.y = element_blank(),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank()) 
+
+```
+

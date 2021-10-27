@@ -1,0 +1,214 @@
+---
+title: "Mixed effects ordinal regression: Model 2"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+
+# Overview
+
+Consolidate all data into single FINAL dataframe
+
+```{r,eval=FALSE,echo=TRUE}
+
+# An EU dummy
+df=df %>% mutate(Actor2=recode_factor(actor1,
+                                      `National`="Domestic",
+                                      `Subnational`="Domestic",
+                                      `National + Subnational`="Domestic",
+                                      `EU + National`="European",
+                                      `EU + National + Subnational`="European",
+                                      `EU + Subnational`="European",
+                                      `National + Other country`="European",
+                                      `EU`="European",
+                                      `Other country`="European",
+                                      `EU + Other country`="European"))
+
+```
+
+
+```{r,echo=FALSE,message=FALSE}
+
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(scales)
+library(tidyr)
+library(reshape2)
+library(knitr)
+library(kableExtra)
+library(stringr)
+library(ordinal)
+library(ggeffects)
+library(broom)
+
+```
+
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+load("~/Misc/RegStudies2/FINAL/Create_Final_dataframes/dfFull.Rdata")
+df=dfFull
+
+df=df %>% 
+  select(url,country,id,site,sourceType,sourceFormat,sourceLevel,CPvisibility,subFrame1,tone1,actor1,myth1,subFrame2,tone2,actor2,myth2,subFrame3,tone3,actor3,myth3,Country,title,date,searchTerm,body,wordN,vis,vis2,f1,f2,f3)
+
+load("~/Misc/RegStudies2/FINAL/Create_Final_dataframes/poland.Rdata")
+poland=poland %>% 
+  select(url,country,id,site,sourceType,sourceFormat,sourceLevel,CPvisibility,subFrame1,tone1,actor1,myth1,subFrame2,tone2,actor2,myth2,subFrame3,tone3,actor3,myth3,Country,title,date,searchTerm,body,wordN,vis,vis2,f1,f2,f3)
+
+poland=poland %>% 
+  mutate(date2=str_extract(date, "^.{4}")) %>% 
+           filter(date2>2013) %>% 
+  select(-date2)
+  
+
+df=rbind(df,poland)
+
+df= df %>% mutate_all(na_if,"")
+
+# SAVE DATA FILE
+#write.csv(df,"date.csv")
+
+# Manually FIX missing DATES
+df=read.csv("~/Misc/RegStudies2/FINAL/Create_Final_dataframes/dateFIXED.csv",stringsAsFactors = FALSE)
+
+# Delete Random extra UK case
+df=df %>% 
+  mutate(del=as.character(interaction(country,id))) %>% 
+  filter(del!="UK.703") %>% 
+  select(-del)
+  
+```
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+# Extract date
+
+df=df %>% 
+  mutate(date2=as.Date(date,format = "%Y-%m-%d"),
+         year=str_extract(date, "^.{4}"),
+         year2=year,
+         year2=as.numeric(recode(year2, `2014`="1",`2015`="1",`2016`="2",`2017`="2",`2018`="3",`2019`="3")),
+         dim=as.character(f1),
+         dim=as.factor(recode(f1,
+                              `Socio-Economic`="ECO",
+                              `Values`="ECO",
+                              `Governance`="POL",
+                              `Power`="POL")))
+
+
+
+df$vis4=recode_factor(df$vis, `very low`="v.low",
+                      `low`="low-medium",
+                      `medium`="low-medium",
+                      `high`="high-very high",
+                      `very high`="high-very high",.ordered = TRUE)
+
+df$level=df$sourceLevel
+df$level=recode_factor(df$level, `Regional/Local`="Regional")
+
+df$words=cut(df$wordN,
+             breaks = c(0,500,1000,Inf),
+             labels=c("<500","500-1000","+1000"))
+
+
+countryCov=read.csv("~/Misc/RegStudies2/FINAL/Create_Final_dataframes/countryCov.csv")
+Net=c(1,1,1,0,1,0,0,0,1)
+countryCov=cbind(countryCov,Net)
+countryCov$Net=as.factor(ifelse(countryCov$Net==1,"Payer","Recipient"))
+
+df=merge(df,countryCov,by="country",all.x = TRUE,sort = F)
+
+countryCov$bad_thing17=countryCov$bad_thing17*100
+
+
+# Fix Actor
+
+# EU ONLY MENTION
+df=df %>% mutate(Actor1=recode_factor(actor1,
+                                      `National`="Domestic",
+                                      `Subnational`="Domestic",
+                                      `National + Subnational`="Domestic",
+                                      `EU + National`="Domestic",
+                                      `EU + National + Subnational`="Domestic",
+                                      `EU + Subnational`="Domestic",
+                                      `National + Other country`="Domestic",
+                                      `EU`="European",
+                                      `Other country`="European",
+                                      `EU + Other country`="European"))
+
+# An EU dummy
+df=df %>% mutate(Actor2=recode_factor(actor1,
+                                      `National`="Domestic",
+                                      `Subnational`="Domestic",
+                                      `National + Subnational`="Domestic",
+                                      `EU + National`="European",
+                                      `EU + National + Subnational`="European",
+                                      `EU + Subnational`="European",
+                                      `National + Other country`="European",
+                                      `EU`="European",
+                                      `Other country`="European",
+                                      `EU + Other country`="European"))
+
+df=df %>% mutate(Actor3=recode_factor(actor1,
+                                      `National`="Domestic",
+                                      `Subnational`="Domestic",
+                                      `National + Subnational`="Domestic",
+                                      `EU + National`="Mixed",
+                                      `EU + National + Subnational`="Mixed",
+                                      `EU + Subnational`="Mixed",
+                                      `National + Other country`="Mixed",
+                                      `EU`="European",
+                                      `Other country`="European",
+                                      `EU + Other country`="European"))
+
+
+
+df$Actor1[df$Actor1=="No actor"]<-NA
+
+
+df=subset(df, !is.na(Actor1))
+df=subset(df, !is.na(vis4))
+
+df=droplevels(df)
+
+# Create interaction Actor2
+df$dimActor=with(df, interaction(Actor1,dim,sep = "|"))
+
+```
+
+
+
+```{r}
+
+# Create DV for Dominant frame
+
+df=df %>% 
+  mutate(Tone=factor(tone1, levels = c("Negative","Balanced", "Factual","Positive")),
+         Tone=recode_factor(Tone, `Negative` = "Negative", 
+                   `Balanced` = "Neutral", 
+                   `Factual` = "Neutral",
+                   `Positive` = "Positive",
+                   .ordered = TRUE))
+
+```
+
+
+```{r}
+# Scale numeric variables
+n1=c("net_bal_pc","cp_pc","equi17","bad_thing17","selfrule","RAI","goodMu")
+df[n1]=lapply(df[n1], function(x)
+  (x - mean(x)) / sd(x))
+```
+
+# Save DF
+```{r}
+save(df,file="~/Misc/RegStudies2/FINAL/df.Rdata")
+```
+

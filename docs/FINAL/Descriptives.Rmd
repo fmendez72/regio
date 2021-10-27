@@ -1,0 +1,66 @@
+---
+title: 'Appendix 5: List of sources per country'
+output:
+  pdf_document: default
+  html_document: default
+editor_options:
+  chunk_output_type: console
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+
+
+
+```{r,echo=FALSE,message=FALSE}
+
+library(dplyr)
+library(ggplot2)
+library(ggpubr)
+library(scales)
+library(tidyr)
+library(reshape2)
+library(knitr)
+library(kableExtra)
+library(stringr)
+library(ordinal)
+library(ggeffects)
+library(broom)
+
+```
+
+
+```{r,echo=FALSE,message=FALSE,warning=FALSE}
+# UPLOAD FIXED DATAFRAME (Manually FIXED missing DATES)
+load("~/Dropbox/testGitHub/regio/FINAL/df.Rdata")
+
+# Rename for graphs
+df=df %>% 
+  mutate(dim=as.character(f1),
+         dim=as.factor(recode(f1,
+                              `Socio-Economic`="ECO\nFrame",
+                              `Values`="ECO\nFrame",
+                              `Governance`="POL\nFrame",
+                              `Power`="POL\nFrame")))
+
+```
+
+
+
+### News sites per country
+
+```{r table, results='asis'}
+
+
+df %>%
+  group_by(country,site) %>%
+  count(name="N_observations") %>% 
+    kable(format = 'latex', booktabs = TRUE)
+
+
+
+```
+
