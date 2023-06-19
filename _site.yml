@@ -10,4 +10,6 @@ navbar:
       href: ExploratoryAnalysis2.html
     - text: "Links"
       href: Links.html
+    - text: "Dashboard"
+      href: Dashboard.html  
 output_dir: "docs"
