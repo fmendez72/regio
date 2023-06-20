@@ -12,4 +12,6 @@ navbar:
       href: Links.html
     - text: "Dashboard"
       href: Dashboard.html  
+    - text: "Survey"
+      href: Survey.html  
 output_dir: "docs"
