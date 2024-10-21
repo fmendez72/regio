@@ -19,7 +19,7 @@ output: html_document
 
 # **Regio's project web site**
 
-This website contains various project resources. The project analyzes the tone and the level of Europeanization in media stories related to Cohesion policy based on our framing analysis framework.   
+This website contains various project resources. The project analyzes the tone and the level of Europeanisation in media stories related to Cohesion policy based on our framing analysis framework.   
 
 
 ## How to use  
